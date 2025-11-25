@@ -1,0 +1,347 @@
+/* src/styles/App.css */
+
+:root {
+  /* --- PALETTE EGLISE CONNECT --- */
+  --primary: #DFA92E;      /* Jaune Doré */
+  --primary-hover: #c6921e;
+  --secondary: #3A3A3A;    /* Gris Foncé */
+  --bg-color: #F9F9F9;     /* Fond clair */
+  --card-bg: #ffffff;
+  --text-main: #333333;
+  --text-light: #666666;
+  --shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* --- CONFIGURATION GLOBALE --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Layout & Cartes --- */
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 15px;
+  padding-bottom: 80px;
+  box-sizing: border-box;
+}
+
+.card, form {
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 25px;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+}
+
+/* --- Navigation --- */
+.navbar {
+  background: white;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 3px solid var(--primary);
+  height: 60px;
+  box-sizing: border-box;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-brand img { height: 40px; }
+
+.nav-links { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+.nav-links a { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 0.9rem; transition: color 0.2s; }
+.nav-links a:hover { color: var(--primary); }
+.profile-link { background-color: var(--primary); color: white !important; padding: 8px 15px; border-radius: 5px; }
+
+/* --- Formulaires & Boutons --- */
+input:not([type="file"]), select, textarea {
+  width: 100%; padding: 12px; margin: 8px 0 20px 0; display: block;
+  border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; background-color: #fafafa;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background-color: white; }
+
+button {
+  background-color: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 5px;
+  cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; transition: all 0.2s;
+}
+button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+/* --- Footer --- */
+.app-footer {
+  background-color: var(--secondary); color: #ccc; padding: 40px 20px; text-align: center; margin-top: auto;
+}
+.footer-links span { color: var(--primary); margin: 0 10px; cursor: pointer; }
+
+.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--secondary); }
+
+/* RESPONSIVE MOBILE */
+@media (max-width: 768px) {
+  .menu-toggle { display: block; }
+  .nav-links {
+    position: fixed; top: 60px; right: -100%; width: 80%; height: calc(100vh - 60px);
+    background: white; flex-direction: column; justify-content: flex-start; padding-top: 40px; gap: 25px;
+    transition: right 0.3s ease; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+  }
+  .nav-links.active { right: 0; }
+  .nav-links a { font-size: 1.1rem; width: 100%; padding: 10px 30px; border-bottom: 1px solid #f0f0f0; }
+}
+
+
+/* ===========================================================
+   STYLE UNIQUE : "LE FIL D'OR" (CHAT)
+   =========================================================== */
+
+.chat-container {
+  position: fixed;
+  top: 70px; 
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  background: #fdfbf7;
+  background-image: radial-gradient(#DFA92E 0.5px, transparent 0.5px), radial-gradient(#DFA92E 0.5px, #fdfbf7 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 2px solid #f0e6d2;
+  z-index: 500;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    top: 60px; bottom: 0; left: 0; transform: none; width: 100%; max-width: 100%; border-radius: 0; border: none;
+  }
+}
+
+.chat-header {
+  flex-shrink: 0;
+  padding: 15px 20px;
+  background: white;
+  border-bottom: 3px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain; /* Bloque le scroll ici */
+  position: relative;
+}
+
+.chat-messages::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: rgba(223, 169, 46, 0.3); transform: translateX(-50%); z-index: 0;
+}
+@media (max-width: 768px) { .chat-messages::before { display: none; } }
+
+.message-wrapper { display: flex; align-items: flex-end; width: 100%; position: relative; z-index: 1; }
+.message-left { justify-content: flex-start; }
+.message-left .message-bubble { margin-left: 50px; border-bottom-left-radius: 0; background: white; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.message-left .user-avatar { position: absolute; left: 0; bottom: 0; border: 2px solid var(--primary); }
+.message-right { justify-content: flex-end; }
+.message-right .message-bubble { margin-right: 10px; border-bottom-right-radius: 0; background: linear-gradient(135deg, var(--primary) 0%, #c6921e 100%); color: white; box-shadow: 0 4px 10px rgba(223, 169, 46, 0.4); }
+.message-bubble { max-width: 70%; padding: 12px 18px; border-radius: 18px; position: relative; font-size: 0.95rem; line-height: 1.5; }
+
+.chat-input-area {
+  flex-shrink: 0;
+  padding: 15px;
+  background: white;
+  border-top: 1px solid #f0e6d2;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.chat-input-area input { background: #f9f9f9; border: 1px solid #eee; box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); transition: all 0.3s; margin: 0; }
+.chat-input-area input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(223, 169, 46, 0.1); }
+
+/* ===========================================================
+   LISTE MESSAGERIE (INBOX) - SANS BUG
+   =========================================================== */
+.conversation-card {
+  background: white;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  border: 1px solid #f0f0f0;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-left-color 0.2s ease;
+  border-left: 5px solid transparent; 
+}
+
+.gold-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+/* ANIMATION AU SURVOL (GÉRÉE PAR CSS) */
+.conversation-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border-left-color: var(--primary);
+}
+.conversation-card:hover .gold-bar {
+  background: var(--primary);
+}
+
+/* ===========================================================
+   PROFIL PREMIUM
+   =========================================================== */
+
+.profile-banner-container {
+  height: 250px; width: 100%; background-color: #222; background-size: cover; background-position: center; position: relative; border-radius: 0 0 20px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+@media (max-width: 768px) { .profile-banner-container { height: 150px; border-radius: 0; } }
+.profile-banner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%); border-radius: 0 0 20px 20px; }
+
+.profile-main-card {
+  background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-top: -80px; margin-bottom: 30px; padding: 0 20px 30px 20px; text-align: center; position: relative; z-index: 10;
+}
+
+.profile-avatar-wrapper { width: 140px; height: 140px; margin: 0 auto; position: relative; top: -70px; margin-bottom: -60px; }
+.profile-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: white; }
+.camera-btn { position: absolute; bottom: 5px; right: 5px; background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; alignItems: center; justifyContent: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; border: 2px solid white; }
+.camera-btn:hover { transform: scale(1.1); }
+
+.profile-stats { display: flex; justify-content: center; gap: 40px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
+.stat-item { display: flex; flex-direction: column; align-items: center; }
+.stat-value { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+.profile-tabs { display: flex; justify-content: center; gap: 10px; background: transparent; margin-bottom: 25px; flex-wrap: wrap; }
+@media (max-width: 768px) { .profile-tabs { justify-content: space-between; overflow-x:auto; flex-wrap:nowrap; padding-bottom:5px; } .tab-btn { font-size:0.8rem; white-space:nowrap; } }
+.tab-btn { background: transparent; border: none; padding: 10px 20px; font-size: 1rem; color: #888; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+/* ===========================================================
+   PARAMÈTRES (Switch)
+   =========================================================== */
+.settings-section { margin-bottom: 30px; text-align: left; }
+.settings-title { font-size: 0.9rem; text-transform: uppercase; color: #888; font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; }
+.settings-list { background: #f9f9f9; border-radius: 12px; overflow: hidden; }
+.settings-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; }
+.settings-item:last-child { border-bottom: none; }
+.settings-label { display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--text-main); }
+
+/* SWITCH ON/OFF */
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; margin: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(24px); }
+
+/* BOUTON DANGER */
+.danger-zone { text-align: center; margin-top: 40px; }
+.btn-logout { width: 100%; background: #ffe4e6; color: #dc2626; border: none; padding: 15px; border-radius: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+.btn-delete { background: transparent; color: #999; font-size: 0.85rem; text-decoration: underline; border: none; cursor: pointer; }
+.btn-delete:hover { color: #dc2626; }
+
+/* ===========================================================
+   SIDEBAR PROFIL (VOLET LATÉRAL)
+   =========================================================== */
+.profile-sidebar { position: absolute; top: 0; right: 0; width: 0; height: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-left: 3px solid var(--primary); transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; z-index: 100; display: flex; flex-direction: column; }
+.profile-sidebar.open { width: 300px; }
+.sidebar-content { padding: 30px 20px; text-align: center; opacity: 0; transition: opacity 0.3s ease 0.2s; min-width: 260px; }
+.profile-sidebar.open .sidebar-content { opacity: 1; }
+.sidebar-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+.sidebar-name { color: var(--secondary); margin: 0 0 5px 0; font-size: 1.4rem; }
+.sidebar-bio { font-style: italic; color: #666; background: #fdfbf7; padding: 15px; border-radius: 10px; border: 1px dashed #ddd; margin: 20px 0; font-size: 0.9rem; }
+.sidebar-info { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-main); margin-bottom: 8px; font-size: 0.9rem; }
+.close-sidebar { position: absolute; top: 10px; left: 10px; background: transparent; color: #999; font-size: 1.2rem; cursor: pointer; padding: 5px; width: auto; border: none; }
+.close-sidebar:hover { color: var(--primary); transform: none; }
+
+/* --- SPINNER & LIGHTBOX --- */
+.spinner-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:flex; justify-content:center; align-items:center; z-index: 2000; }
+.spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.lightbox-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); display:flex; justify-content:center; align-items:center; z-index: 3000; cursor: zoom-out; padding: 20px; box-sizing: border-box; }
+.lightbox-img { max-width:90%; max-height:90%; border-radius:5px; object-fit: contain; }
+.lightbox-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.2); color:white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; border:none; display: flex; justify-content: center; align-items: center; cursor:pointer; }
+
+/* ===========================================================
+   DESIGN MÉDIA STYLE "STORY INSTA" (NOUVEAU)
+   =========================================================== */
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding-bottom: 80px;
+}
+@media (max-width: 768px) { .stories-grid { grid-template-columns: 1fr; gap: 30px; } }
+
+.story-card {
+  position: relative; height: 550px; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease;
+}
+.story-card:hover { transform: scale(1.02); }
+
+.story-media { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+
+.story-audio-bg {
+  width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, #222 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; color: white;
+}
+
+.story-overlay {
+  position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); box-sizing: border-box; color: white; display: flex; flex-direction: column; justify-content: flex-end; height: 50%;
+}
+
+.story-header {
+  position: absolute; top: 15px; left: 15px; display: flex; align-items: center; gap: 10px; z-index: 10; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 20px; backdrop-filter: blur(5px);
+}
+.story-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
+.story-author { font-weight: bold; color: white; font-size: 0.9rem; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+.story-category { background: var(--primary); color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; align-self: flex-start; margin-bottom: 8px; }
+.story-title { margin: 0; font-size: 1.4rem; line-height: 1.2; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.story-desc { font-size: 0.9rem; opacity: 0.8; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
