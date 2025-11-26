@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-// 1. On importe la configuration
-import API_URL from '../config'; 
+import API_URL from '../config'; // <--- On importe l'URL forcée
 
 export const AuthContext = createContext();
 
@@ -11,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // 2. On remplace l'ancienne adresse par la variable
+      // Utilisation de API_URL
       fetch(`${API_URL}/auth/me`, { 
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -20,16 +19,18 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Token invalide');
       })
       .then(userData => setUser(userData))
-      .catch(() => logout());
+      .catch(() => {
+        localStorage.removeItem('token');
+        setLoading(false);
+      });
     } else {
       setLoading(false);
     }
-    if(token) setTimeout(() => setLoading(false), 500); 
-    else setLoading(false);
+    if(token) setTimeout(() => setLoading(false), 500);
   }, []);
 
   const login = async (email, password) => {
-    // 3. Ici aussi
+    // Utilisation de API_URL
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (name, email, password) => {
-    // 4. Et ici
+    // Utilisation de API_URL
     const res = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
