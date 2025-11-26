@@ -1,5 +1,6 @@
-// frontend/src/context/AuthContext.js
 import { createContext, useState, useEffect } from 'react';
+// 1. On importe la configuration
+import API_URL from '../config'; 
 
 export const AuthContext = createContext();
 
@@ -7,82 +8,56 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // URL de base stable (évite les bugs localhost)
-  const API_URL = 'http://127.0.0.1:3002/auth';
-
   useEffect(() => {
-    checkUserLoggedIn();
-  }, []);
-
-  const checkUserLoggedIn = async () => {
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const res = await fetch(`${API_URL}/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData);
-        } else {
-          logout(); // Token invalide ou expiré
-        }
-      } catch (err) {
-        console.error("Erreur connexion auto:", err);
-        // Ne pas déconnecter tout de suite si c'est juste une erreur réseau temporaire
-      }
+      // 2. On remplace l'ancienne adresse par la variable
+      fetch(`${API_URL}/auth/me`, { 
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error('Token invalide');
+      })
+      .then(userData => setUser(userData))
+      .catch(() => logout());
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+    if(token) setTimeout(() => setLoading(false), 500); 
+    else setLoading(false);
+  }, []);
 
   const login = async (email, password) => {
-    try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.message || 'Erreur de connexion');
-      
-      localStorage.setItem('token', data.token);
-      
-      // Mise à jour immédiate de l'état sans recharger la page (plus rapide)
-      await checkUserLoggedIn(); 
-      
-      return true; // Succès
-    } catch (err) {
-      throw err; // Renvoie l'erreur au formulaire pour l'afficher
-    }
+    // 3. Ici aussi
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    localStorage.setItem('token', data.token);
+    window.location.reload();
   };
 
   const signup = async (name, email, password) => {
-    try {
-      const res = await fetch(`${API_URL}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.message || "Erreur d'inscription");
-      
-      localStorage.setItem('token', data.token);
-      await checkUserLoggedIn();
-      
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    // 4. Et ici
+    const res = await fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    localStorage.setItem('token', data.token);
+    window.location.reload();
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    window.location.href = '/login'; // Redirection forcée propre
+    window.location.href = '/login';
   };
 
   return (
