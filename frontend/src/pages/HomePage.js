@@ -135,17 +135,17 @@ export default function HomePage() {
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'30px' }}>
                 <div>
                     <div style={circleIconStyle}><FaChurch /></div>
-                    <h4>Communion</h4>
+                    <h4>Fraternité</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Restez lié à votre église où que vous soyez.</p>
                 </div>
                 <div>
                     <div style={circleIconStyle}><FaHeart /></div>
-                    <h4>Entraide</h4>
+                    <h4>Amour</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Soutenez-vous mutuellement par la prière.</p>
                 </div>
                 <div>
                     <div style={circleIconStyle}><FaGlobeAfrica /></div>
-                    <h4>Évangélisation</h4>
+                    <h4>Service</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Un outil moderne pour partager la bonne nouvelle.</p>
                 </div>
             </div>
