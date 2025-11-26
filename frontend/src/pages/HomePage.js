@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import API_URL from '../config'; // <--- IMPORT DE LA BONNE ADRESSE (Indispensable)
 import { 
   FaCalendarAlt, FaComments, FaHandHoldingHeart, FaBible, 
   FaQuoteLeft, FaSignInAlt, FaUserPlus, FaBookOpen, FaPrayingHands,
@@ -134,23 +135,23 @@ export default function HomePage() {
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'30px' }}>
                 <div>
                     <div style={circleIconStyle}><FaChurch /></div>
-                    <h4>Fraternité</h4>
+                    <h4>Communion</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Restez lié à votre église où que vous soyez.</p>
                 </div>
                 <div>
                     <div style={circleIconStyle}><FaHeart /></div>
-                    <h4>Amour</h4>
+                    <h4>Entraide</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Soutenez-vous mutuellement par la prière.</p>
                 </div>
                 <div>
                     <div style={circleIconStyle}><FaGlobeAfrica /></div>
-                    <h4>Service</h4>
+                    <h4>Évangélisation</h4>
                     <p style={{fontSize:'0.9em', color:'#666'}}>Un outil moderne pour partager la bonne nouvelle.</p>
                 </div>
             </div>
         </div>
 
-        {/* 6. SECTION NEWSLETTER (NOUVEAU) */}
+        {/* 6. SECTION NEWSLETTER CORRIGÉE */}
         <div style={{ background:'var(--secondary)', color:'white', padding:'40px 20px', borderRadius:'20px', textAlign:'center', marginTop:'60px', marginBottom:'40px' }}>
             <h2 style={{ color:'var(--primary)', marginBottom:'10px' }}>Restez informé</h2>
             <p style={{ opacity:0.8, marginBottom:'20px' }}>Inscrivez-vous à notre newsletter pour recevoir les nouvelles de la communauté.</p>
@@ -160,14 +161,15 @@ export default function HomePage() {
                     e.preventDefault();
                     const email = e.target.elements.email.value;
                     try {
-                        const res = await fetch('http://localhost:3002/newsletter/subscribe', {
+                        // UTILISATION DE API_URL ICI :
+                        const res = await fetch(`${API_URL}/newsletter/subscribe`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email })
                         });
                         const data = await res.json();
                         if(res.ok) alert("Inscription réussie !"); 
                         else alert(data.message);
-                    } catch(err) { alert("Erreur"); }
+                    } catch(err) { alert("Erreur connexion serveur"); }
                 }}
                 style={{ display:'flex', maxWidth:'500px', margin:'0 auto', background:'white', padding:'5px', borderRadius:'30px' }}
             >
