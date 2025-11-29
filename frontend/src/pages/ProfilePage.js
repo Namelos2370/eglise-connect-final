@@ -1,13 +1,13 @@
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { useNavigate, Link } from 'react-router-dom'; // Ajout Link
+import { useNavigate, Link } from 'react-router-dom';
 import API_URL from '../config';
 import { 
-  FaPen, FaSave, FaTimes, FaCamera, FaMapMarkerAlt, FaPhone, 
-  FaGlobe, FaLock, FaSignOutAlt, FaFileAlt, FaHeart, FaComment, 
-  FaTrash, FaCalendarCheck, FaEdit, FaUser, FaImages, FaCog, FaTrashAlt, FaClock, FaSpinner,
-  FaTh, FaHandHoldingHeart, FaPrayingHands, FaYoutube, FaUsers, FaShieldAlt // Nouvelles icônes
+  FaPen, FaSave, FaTimes, FaCamera, FaGlobe, FaLock, FaSignOutAlt, 
+  FaHeart, FaComment, FaTrash, FaCalendarCheck, FaUser, FaImages, FaCog, 
+  FaTrashAlt, FaClock, FaSpinner, FaTh, FaHandHoldingHeart, FaPrayingHands, 
+  FaYoutube, FaUsers, FaShieldAlt, FaMapMarkerAlt, FaPhone, FaBell, FaLanguage, FaKey
 } from 'react-icons/fa';
 
 export default function ProfilePage() {
@@ -18,7 +18,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('posts'); 
   const [myPosts, setMyPosts] = useState([]);
   const [myEvents, setMyEvents] = useState([]);
-  const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -37,8 +36,6 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // ... (Gardez les fonctions fetchMyPosts, fetchMyEvents, handleAvatarUpload, handleCoverUpload, handleSaveProfile, updatePreferences, handleDeletePost, handleDeleteEvent, handleDeleteAccount telles quelles)
-  // Je les abrège ici pour la clarté, mais il faut les garder complètes dans votre fichier
   const fetchMyPosts = async () => { try { const res = await fetch(`${API_URL}/posts/user/${user._id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }); if (res.ok) setMyPosts(await res.json()); } catch (err) { console.error(err); } };
   const fetchMyEvents = async () => { try { const res = await fetch(`${API_URL}/events/user/${user._id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }); if (res.ok) setMyEvents(await res.json()); } catch (err) { console.error(err); } };
   const handleAvatarUpload = async (e) => { const f = e.target.files[0]; if(!f) return; setUploading(true); const d = new FormData(); d.append('photo', f); const t = localStorage.getItem('token'); try { const res = await fetch(`${API_URL}/auth/upload-photo`, { method: 'POST', headers: { 'Authorization': `Bearer ${t}` }, body: d }); if(res.ok) { toast.success("Avatar mis à jour !"); setTimeout(() => window.location.reload(), 1000); } else { toast.error("Erreur upload"); } } catch(err) { toast.error("Erreur serveur"); } setUploading(false); };
@@ -52,7 +49,6 @@ export default function ProfilePage() {
   if (!user) return <div style={{textAlign:'center', marginTop:'50px'}}>Chargement...</div>;
   const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {month:'long', year:'numeric'}) : 'Novembre 2025';
 
-  // STYLE POUR LES BOUTONS DU MENU RAPIDE
   const menuBtnStyle = {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '15px', background: 'white', borderRadius: '12px',
@@ -63,7 +59,7 @@ export default function ProfilePage() {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom:'50px' }}>
       
-      {/* --- 1. HEADER VISUEL --- */}
+      {/* HEADER VISUEL */}
       <div className="profile-banner-container" style={{ backgroundImage: user.coverPhoto ? `url(${user.coverPhoto})` : 'linear-gradient(135deg, var(--secondary), #1a1a1a)' }}>
         <div className="profile-banner-overlay"></div>
         {isEditing && (
@@ -78,10 +74,7 @@ export default function ProfilePage() {
         <div className="profile-avatar-wrapper">
             <img src={user.photo || "https://via.placeholder.com/150"} className="profile-avatar-img" alt="Profil" />
             {isEditing && (
-                <label className="camera-btn">
-                    {uploading ? <FaSpinner className="fa-spin" /> : <FaCamera size={14} />}
-                    <input type="file" onChange={handleAvatarUpload} style={{display:'none'}} accept="image/*" />
-                </label>
+                <label className="camera-btn">{uploading ? <FaSpinner className="fa-spin" /> : <FaCamera size={14} />}<input type="file" onChange={handleAvatarUpload} style={{display:'none'}} accept="image/*" /></label>
             )}
         </div>
 
@@ -108,17 +101,23 @@ export default function ProfilePage() {
                 <span style={{ display:'flex', alignItems:'center', gap:5 }}><FaClock /> Membre depuis {joinDate}</span>
             </div>
         </div>
+
+        <div className="profile-stats">
+            <div className="stat-item"><span className="stat-value">{myPosts.length}</span><span className="stat-label">Posts</span></div>
+            <div className="stat-item"><span className="stat-value">{myEvents.length}</span><span className="stat-label">Events</span></div>
+            <div className="stat-item"><span className="stat-value" style={{color:'#10b981'}}>Actif</span><span className="stat-label">Statut</span></div>
+        </div>
       </div>
 
-      {/* --- 3. ONGLETS --- */}
+      {/* ONGLETS */}
       <div className="profile-tabs">
         <button onClick={() => setActiveTab('posts')} className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}><FaImages /> Posts</button>
-        <button onClick={() => setActiveTab('menu')} className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`}><FaTh /> Menu</button> {/* NOUVEAU ONGLET MENU */}
+        <button onClick={() => setActiveTab('menu')} className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`}><FaTh /> Menu</button>
         <button onClick={() => setActiveTab('infos')} className={`tab-btn ${activeTab === 'infos' ? 'active' : ''}`}><FaUser /> Infos</button>
         <button onClick={() => setActiveTab('settings')} className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}><FaCog /> Paramètres</button>
       </div>
 
-      {/* --- 4. CONTENU --- */}
+      {/* CONTENU */}
       
       {activeTab === 'posts' && (
         <div style={{ display:'grid', gap:'20px' }}>
@@ -137,13 +136,14 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* --- NOUVEAU CONTENU : MENU RAPIDE (ACCESSIBLE MOBILE) --- */}
+      {/* --- ONGLET MENU : ACCÈS AUX AUTRES FONCTIONS --- */}
       {activeTab === 'menu' && (
         <div style={{ padding:'10px' }}>
             <h3 style={{ color:'#888', fontSize:'0.9em', textTransform:'uppercase', marginBottom:'15px' }}>Accès Rapide</h3>
             
+            {/* LE LIEN SOUTENIR EST ICI */}
             <Link to="/donations" style={menuBtnStyle}>
-                <span style={{display:'flex', alignItems:'center', gap:10}}><FaHandHoldingHeart style={{color:'var(--primary)'}} /> Faire un Don</span>
+                <span style={{display:'flex', alignItems:'center', gap:10}}><FaHandHoldingHeart style={{color:'var(--primary)'}} /> Soutenir l'App</span>
                 <span style={{color:'#ccc'}}>&gt;</span>
             </Link>
             
@@ -153,7 +153,7 @@ export default function ProfilePage() {
             </Link>
             
             <Link to="/sermons" style={menuBtnStyle}>
-                <span style={{display:'flex', alignItems:'center', gap:10}}><FaYoutube style={{color:'var(--primary)'}} /> Médiathèque & Sermons</span>
+                <span style={{display:'flex', alignItems:'center', gap:10}}><FaYoutube style={{color:'var(--primary)'}} /> Médias & Sermons</span>
                 <span style={{color:'#ccc'}}>&gt;</span>
             </Link>
             
@@ -171,7 +171,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Infos & Settings (Restent inchangés) */}
       {activeTab === 'infos' && (
         <div className="card" style={{ padding:'30px' }}>
             {isEditing && (<div style={{ background:'#f9f9f9', padding:'10px', borderRadius:'8px', marginBottom:'20px', display:'flex', alignItems:'center', gap:10 }}><input type="checkbox" checked={formData.isPublic} onChange={e => setFormData({...formData, isPublic: e.target.checked})} style={{ width:'20px', margin:0 }} /><label style={{ fontSize:'0.9em' }}>Profil Public</label></div>)}
@@ -192,9 +191,21 @@ export default function ProfilePage() {
                 <span>Notifications</span>
                 <label className="switch"><input type="checkbox" checked={formData.preferences?.notifications} onChange={(e) => updatePreferences({...formData.preferences, notifications: e.target.checked})} /><span className="slider"></span></label>
             </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, background:'#f9f9f9', padding:15, borderRadius:10 }}>
+                <span>Langue</span>
+                <select value={formData.preferences?.language} onChange={(e) => updatePreferences({...formData.preferences, language: e.target.value})} style={{width:'auto', margin:0}}>
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, background:'#f9f9f9', padding:15, borderRadius:10 }}>
+                 <span>Mot de passe</span>
+                 <Link to="/forgot-password" style={{textDecoration:'none', fontWeight:'bold', color:'var(--primary)'}}>Modifier</Link>
+            </div>
+
             <button onClick={logout} style={{ background: 'white', border:'1px solid #ef4444', color: '#ef4444', width: '100%', marginBottom:'20px', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}><FaSignOutAlt /> Déconnexion</button>
             <hr />
-            <h4 style={{ color:'#dc2626', marginTop:'20px' }}>Zone de Danger</h4>
+            <h4 style={{ color:'#dc2626', marginTop:'20px', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}><FaShieldAlt /> Zone de Danger</h4>
             <button onClick={handleDeleteAccount} style={{ background:'#fee2e2', color:'#dc2626', border:'none', width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}><FaTrashAlt /> Supprimer mon compte</button>
         </div>
       )}

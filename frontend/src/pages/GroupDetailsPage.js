@@ -1,45 +1,73 @@
-import { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useContext, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { FaArrowLeft, FaUsers, FaPen, FaCamera, FaRegListAlt } from 'react-icons/fa';
+import { 
+  FaArrowLeft, FaUsers, FaCamera, FaPaperPlane, FaSmile, 
+  FaInfoCircle, FaEllipsisV, FaTrash, FaCopy, FaTimes 
+} from 'react-icons/fa';
+import EmojiPicker from 'emoji-picker-react';
 import API_URL from '../config';
+import ImageModal from '../components/ImageModal';
 
 export default function GroupDetailsPage() {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
   const [group, setGroup] = useState(null);
   const [posts, setPosts] = useState([]);
+  
+  // États Saisie
   const [newPost, setNewPost] = useState('');
   const [file, setFile] = useState(null);
-  const [activeTab, setActiveTab] = useState('feed'); // 'feed' ou 'members'
+  const [showPicker, setShowPicker] = useState(false); // Emoji
+  
+  // États Interface
+  const [showInfo, setShowInfo] = useState(false); // Pour voir les membres/infos
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null); // Menu contextuel message
+  
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchGroupData();
+    // Rafraîchissement auto (Temps réel)
+    const interval = setInterval(fetchGroupData, 3000);
+    return () => clearInterval(interval);
   }, [id]);
+
+  useEffect(() => {
+    // Scroll automatique en bas à l'arrivée de nouveaux messages
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [posts]);
 
   const fetchGroupData = async () => {
     const token = localStorage.getItem('token');
     try {
         const resGroup = await fetch(`${API_URL}/groups/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (resGroup.ok) setGroup(await resGroup.json());
-
-        const resPosts = await fetch(`${API_URL}/posts/group/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (resPosts.ok) setPosts(await resPosts.json());
+        if (resGroup.ok) {
+            const groupData = await resGroup.json();
+            setGroup(groupData);
+            
+            // Si membre, on charge les messages
+            const isMember = groupData.members.some(m => m._id === user?._id);
+            if (isMember) {
+                const resPosts = await fetch(`${API_URL}/posts/group/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (resPosts.ok) {
+                    const newPosts = await resPosts.json();
+                    // On met à jour seulement si ça a changé pour éviter de faire sauter le scroll
+                    if (newPosts.length !== posts.length) setPosts(newPosts);
+                }
+            }
+        }
     } catch (err) { console.error(err); }
   };
 
-  const handleJoin = async () => {
-    const token = localStorage.getItem('token');
-    try {
-        const res = await fetch(`${API_URL}/groups/${id}/join`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) fetchGroupData();
-    } catch (err) { toast.error("Erreur"); }
-  };
-
-  const handlePost = async (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!newPost.trim() && !file) return;
+    
     const formData = new FormData();
     formData.append('content', newPost);
     formData.append('groupId', id);
@@ -47,91 +75,152 @@ export default function GroupDetailsPage() {
 
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch(`${API_URL}/posts`, {
+        await fetch(`${API_URL}/posts`, {
             method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
         });
-        if (res.ok) {
-            toast.success("Publié dans le groupe !");
-            setNewPost(''); setFile(null); fetchGroupData();
-        }
-    } catch (err) { toast.error("Erreur"); }
+        setNewPost(''); setFile(null); setShowPicker(false); 
+        fetchGroupData();
+    } catch (err) { toast.error("Erreur envoi"); }
   };
 
-  if (!group) return <p style={{textAlign:'center', marginTop:'50px'}}>Chargement...</p>;
+  const handleDeletePost = async (postId) => {
+    if(!window.confirm("Supprimer ce message ?")) return;
+    const token = localStorage.getItem('token');
+    await fetch(`${API_URL}/posts/${postId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    setPosts(posts.filter(p => p._id !== postId));
+  };
+
+  const handleCopy = (text) => {
+      navigator.clipboard.writeText(text);
+      toast.info("Copié !");
+      setOpenMenuId(null);
+  };
+
+  const handleJoin = async () => {
+      const token = localStorage.getItem('token');
+      try {
+          const res = await fetch(`${API_URL}/groups/${id}/join`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+          if (res.ok) fetchGroupData();
+      } catch (e) { toast.error("Erreur"); }
+  };
+
+  if (!group) return <p style={{textAlign:'center', marginTop:50}}>Chargement...</p>;
 
   const isMember = group.members.some(m => m._id === user._id);
 
-  return (
-    <div style={{ maxWidth:'800px', margin:'0 auto', padding:'20px' }}>
-        <Link to="/groups" style={{ textDecoration:'none', color:'#666', display:'flex', alignItems:'center', gap:5, marginBottom:'20px' }}><FaArrowLeft /> Retour</Link>
-
-        {/* BANNIÈRE GROUPE */}
-        <div className="card" style={{ padding:'30px', textAlign:'center', borderTop:'5px solid var(--primary)' }}>
-            {group.photo ? (
-                <img src={group.photo} alt={group.name} style={{ width:100, height:100, borderRadius:'50%', objectFit:'cover', border:'4px solid #eee', margin:'0 auto 15px auto' }} />
-            ) : (
-                <div style={{ width:100, height:100, borderRadius:'50%', background:'var(--primary)', margin:'0 auto 15px auto', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:'2.5em' }}><FaUsers /></div>
-            )}
-            <h1 style={{ margin:0 }}>{group.name}</h1>
-            <p style={{ color:'#666' }}>{group.description}</p>
-            <div style={{ marginTop:'20px' }}>
-                <button onClick={handleJoin} style={{ background: isMember ? '#eee' : 'var(--primary)', color: isMember ? '#333' : 'white' }}>
-                    {isMember ? "Quitter le groupe" : "Rejoindre le groupe"}
-                </button>
+  // SI PAS MEMBRE : ÉCRAN D'ACCUEIL DU GROUPE
+  if (!isMember) {
+      return (
+        <div style={{ maxWidth:'600px', margin:'50px auto', textAlign:'center', padding:'20px' }}>
+            <div className="card" style={{ padding:'40px', borderTop:'5px solid var(--primary)' }}>
+                {group.photo ? <img src={group.photo} style={{width:100, height:100, borderRadius:'50%', objectFit:'cover'}} alt="g"/> : <FaUsers size={80} color="#ccc"/>}
+                <h1>{group.name}</h1>
+                <p style={{color:'#666'}}>{group.description}</p>
+                <p><strong>{group.members.length}</strong> membres participent.</p>
+                <button onClick={handleJoin} className="btn-magic" style={{marginTop:20}}>Rejoindre le Groupe</button>
             </div>
         </div>
+      );
+  }
 
-        {/* ONGLETS */}
-        {isMember && (
-            <>
-                <div style={{ display:'flex', marginTop:'30px', marginBottom:'20px', gap:10 }}>
-                    <button onClick={() => setActiveTab('feed')} style={{ flex:1, background: activeTab==='feed'?'var(--primary)':'white', color: activeTab==='feed'?'white':'#666', border: '1px solid #eee' }}>Fil d'Actu</button>
-                    <button onClick={() => setActiveTab('members')} style={{ flex:1, background: activeTab==='members'?'var(--primary)':'white', color: activeTab==='members'?'white':'#666', border: '1px solid #eee' }}>Membres ({group.members.length})</button>
+  // SI MEMBRE : INTERFACE CHAT WHATSAPP
+  return (
+    <div className="chat-container">
+      <ImageModal src={selectedImage} onClose={() => setSelectedImage(null)} />
+      
+      {/* HEADER DU GROUPE */}
+      <div className="chat-header">
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <Link to="/groups" style={{ color:'#555' }}><FaArrowLeft /></Link>
+            <div onClick={() => setShowInfo(true)} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
+                {group.photo ? <img src={group.photo} style={{width:40, height:40, borderRadius:'50%', objectFit:'cover'}} alt="g"/> : <div style={{width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', color:'white'}}><FaUsers/></div>}
+                <div>
+                    <h3 style={{ margin:0, fontSize:'1rem', color:'#333' }}>{group.name}</h3>
+                    <div style={{ fontSize:'0.75em', color:'var(--primary)' }}>{group.members.length} membres • Appuyer pour infos</div>
                 </div>
+            </div>
+        </div>
+        <FaEllipsisV style={{color:'#888', cursor:'pointer'}} onClick={() => setShowInfo(true)} />
+      </div>
 
-                {/* FIL D'ACTU DU GROUPE */}
-                {activeTab === 'feed' && (
-                    <>
-                        <div className="card" style={{ padding:'20px', marginBottom:'20px' }}>
-                            <textarea placeholder={`Écrire au groupe ${group.name}...`} value={newPost} onChange={e => setNewPost(e.target.value)} style={{ width:'100%', minHeight:'60px', border:'1px solid #eee', padding:'10px', borderRadius:'10px' }} />
-                            <div style={{ display:'flex', justifyContent:'space-between', marginTop:'10px' }}>
-                                <label style={{cursor:'pointer', display:'flex', alignItems:'center', gap:5, color:'var(--primary)'}}><FaCamera /><input type="file" onChange={e => setFile(e.target.files[0])} style={{ display:'none' }} /> Photo</label>
-                                <button onClick={handlePost} style={{ padding:'5px 15px', fontSize:'0.9em' }}>Publier</button>
-                            </div>
-                        </div>
+      {/* VOLET D'INFOS (SIDEBAR DROITE) */}
+      <div className={`profile-sidebar ${showInfo ? 'open' : ''}`} style={{zIndex:3000}}>
+        <button className="close-sidebar" onClick={() => setShowInfo(false)}><FaTimes /></button>
+        <div className="sidebar-content">
+            <h2>Infos du Groupe</h2>
+            <p>{group.description}</p>
+            <hr/>
+            <h3>Membres ({group.members.length})</h3>
+            <div style={{ textAlign:'left', maxHeight:'300px', overflowY:'auto' }}>
+                {group.members.map(m => (
+                    <Link key={m._id} to={`/user/${m._id}`} style={{display:'flex', alignItems:'center', gap:10, padding:10, textDecoration:'none', color:'#333', borderBottom:'1px solid #eee'}}>
+                         <img src={m.photo || "https://via.placeholder.com/30"} style={{width:30, height:30, borderRadius:'50%'}} alt="m"/>
+                         <span>{m.name}</span>
+                    </Link>
+                ))}
+            </div>
+            <button onClick={handleJoin} style={{background:'#fee2e2', color:'#dc2626', marginTop:20, width:'100%'}}>Quitter le groupe</button>
+        </div>
+      </div>
 
-                        {posts.length === 0 ? <p style={{textAlign:'center', color:'#999'}}>Aucune publication.</p> : (
-                            <div style={{ display:'grid', gap:'20px' }}>
-                                {posts.map(post => (
-                                    <div key={post._id} className="card" style={{ padding:'20px' }}>
-                                        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:'10px' }}>
-                                            <img src={post.author?.photo || "https://via.placeholder.com/40"} style={{width:40, height:40, borderRadius:'50%', objectFit:'cover'}} alt="av"/>
-                                            <div><strong style={{display:'block'}}>{post.author?.name}</strong><small style={{color:'#999'}}>{new Date(post.createdAt).toLocaleDateString()}</small></div>
-                                        </div>
-                                        <p>{post.content}</p>
-                                        {post.image && <img src={post.image} alt="post" style={{width:'100%', borderRadius:'10px', marginTop:'10px'}} />}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
+      {/* LISTE DES MESSAGES */}
+      <div className="chat-messages">
+        {posts.map((msg) => {
+          const isMe = msg.author?._id === user?._id;
+          const isMenuOpen = openMenuId === msg._id;
 
-                {/* LISTE DES MEMBRES */}
-                {activeTab === 'members' && (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(150px, 1fr))', gap:'15px' }}>
-                        {group.members.map(member => (
-                            <Link key={member._id} to={`/user/${member._id}`} style={{ textDecoration:'none', color:'inherit' }}>
-                                <div className="card" style={{ padding:'15px', textAlign:'center' }}>
-                                    <img src={member.photo || "https://via.placeholder.com/60"} style={{width:60, height:60, borderRadius:'50%', objectFit:'cover', marginBottom:'5px'}} alt="m"/>
-                                    <div style={{ fontWeight:'bold', fontSize:'0.9em' }}>{member.name}</div>
-                                </div>
-                            </Link>
-                        ))}
+          return (
+            <div key={msg._id} className={`message-wrapper ${isMe ? 'message-right' : 'message-left'}`}>
+              {!isMe && <img src={msg.author?.photo || "https://via.placeholder.com/30"} className="user-avatar" style={{width:30, height:30, borderRadius:'50%'}} alt="av"/>}
+              
+              <div className="message-bubble" style={{position:'relative', minWidth:'100px'}}>
+                 {/* Nom de l'auteur (si ce n'est pas moi) */}
+                 {!isMe && <div style={{fontSize:'0.75em', fontWeight:'bold', color:'var(--primary)', marginBottom:2}}>{msg.author?.name}</div>}
+                 
+                 {/* Contenu (Texte + Image) */}
+                 {msg.image && <img src={msg.image} alt="img" style={{width:'100%', borderRadius:10, marginBottom:5, cursor:'zoom-in'}} onClick={() => setSelectedImage(msg.image)} />}
+                 <div>{msg.content}</div>
+                 
+                 {/* Heure */}
+                 <div style={{fontSize:'0.65em', textAlign:'right', opacity:0.6, marginTop:3}}>{new Date(msg.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+
+                 {/* Menu contextuel (Copier/Supprimer) */}
+                 <div className={`message-options-btn ${isMenuOpen ? 'active' : ''}`} onClick={() => setOpenMenuId(isMenuOpen ? null : msg._id)}><FaEllipsisV size={10} /></div>
+                 {isMenuOpen && (
+                    <div className="message-popup-menu" style={{ right: isMe ? 0 : 'auto', left: isMe ? 'auto' : 0 }}>
+                        <div onClick={() => handleCopy(msg.content)} className="popup-item"><FaCopy/> Copier</div>
+                        {isMe && <div onClick={() => handleDeletePost(msg._id)} className="popup-item delete"><FaTrash/> Supprimer</div>}
                     </div>
-                )}
-            </>
-        )}
+                 )}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* ZONE DE SAISIE */}
+      <form onSubmit={handleSend} className="chat-input-area" style={{ position:'relative' }}>
+        {showPicker && <div style={{position:'absolute', bottom:'70px', left:0, width:'100%', zIndex:100}}><EmojiPicker onEmojiClick={e => setNewPost(p => p + e.emoji)} width="100%" /></div>}
+        
+        <div style={{display:'flex', alignItems:'center', gap:10, width:'100%'}}>
+            <button type="button" onClick={() => setShowPicker(!showPicker)} style={{background:'none', border:'none', fontSize:'1.5rem', color:'#f59e0b', padding:0}}><FaSmile/></button>
+            <label style={{cursor:'pointer', display:'flex', alignItems:'center', color: file ? 'green':'#888'}}>
+                <FaCamera size={22}/>
+                <input type="file" onChange={e => setFile(e.target.files[0])} style={{display:'none'}} accept="image/*" />
+            </label>
+            <input 
+                type="text" 
+                value={newPost} 
+                onChange={e => setNewPost(e.target.value)} 
+                placeholder="Message..." 
+                style={{ flex:1, padding:'12px', borderRadius:'25px', border:'1px solid #ddd', fontSize:'1rem' }}
+            />
+            <button type="submit" style={{ width:45, height:45, borderRadius:'50%', background:'var(--primary)', color:'white', border:'none', display:'flex', justifyContent:'center', alignItems:'center' }}>
+                <FaPaperPlane />
+            </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -18,7 +18,9 @@ const mediaRoutes = require('./routes/media');
 const newsletterRoutes = require('./routes/newsletter');
 const adminRoutes = require('./routes/admin');
 const feedbackRoutes = require('./routes/feedback');
-const groupRoutes = require('./routes/groups'); // <--- NOUVEAU MODULE
+const groupRoutes = require('./routes/groups');
+const serviceRoutes = require('./routes/services');
+const projectRoutes = require('./routes/projects');
 
 const app = express();
 
@@ -54,9 +56,12 @@ app.use('/media', mediaRoutes);
 app.use('/newsletter', newsletterRoutes);
 app.use('/admin', adminRoutes);
 app.use('/feedback', feedbackRoutes);
-app.use('/groups', groupRoutes); // <--- ACTIVATION DE LA ROUTE GROUPES
+app.use('/groups', groupRoutes); 
+app.use('/groups', groupRoutes);
+app.use('/services', serviceRoutes);
+app.use('/services', serviceRoutes);
+app.use('/projects', projectRoutes);
 
-// Route de test
 app.get('/', (req, res) => {
   res.send('API Église Connect V2.1 en ligne 🚀');
 });

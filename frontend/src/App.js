@@ -6,10 +6,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { 
   FaNewspaper, FaCalendarAlt, FaUsers, FaComments, FaHandHoldingHeart, 
   FaUserCircle, FaEnvelope, FaBell, FaSignInAlt, FaUserPlus, FaPrayingHands, 
-  FaYoutube, FaBars, FaTimes, FaShieldAlt
+  FaYoutube, FaBars, FaTimes, FaShieldAlt, FaStore, FaCaretDown // <--- AJOUT FaCaretDown
 } from 'react-icons/fa';
 
-// --- PAGES ---
+// --- IMPORTS DES PAGES ---
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage'; 
@@ -35,6 +35,7 @@ import ContactPage from './pages/ContactPage';
 import FeedbackPage from './pages/FeedbackPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailsPage from './pages/GroupDetailsPage';
+import MarketplacePage from './pages/MarketplacePage';
 
 // --- ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
@@ -48,8 +49,8 @@ import FeedbackManager from './pages/admin/FeedbackManager';
 // --- COMPOSANTS ---
 import Footer from './components/Footer';
 import Spinner from './components/Spinner';
-import FeedbackButton from './components/FeedbackButton';
-import BottomNav from './components/BottomNav'; // <--- IL EST LÀ !
+import FeedbackButton from './components/FeedbackButton'; 
+import BottomNav from './components/BottomNav';
 
 import './styles/App.css'; 
 
@@ -90,24 +91,44 @@ const NavigationBar = () => {
         </Link>
       </div>
       
-      {/* Menu Burger (Visible seulement si pas de BottomNav, donc desktop) */}
-      <div className="menu-toggle desktop-only" onClick={() => setMenuOpen(!menuOpen)}>
+      {/* Menu Burger pour Mobile (Cache le menu PC) */}
+      <div className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <FaTimes /> : <FaBars />}
       </div>
 
       <div className={`nav-links ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+        
+        {/* --- LIENS PRINCIPAUX (Toujours visibles) --- */}
         <Link to="/feed"><FaNewspaper style={{marginRight:5}}/> Fil</Link>
+        <Link to="/market"><FaStore style={{marginRight:5}}/> Marché</Link>
         <Link to="/events"><FaCalendarAlt style={{marginRight:5}}/> Events</Link>
-        <Link to="/groups"><FaUsers style={{marginRight:5}}/> Ministères</Link>
         <Link to="/prayers"><FaPrayingHands style={{marginRight:5}}/> Prières</Link>
         <Link to="/donations"><FaHandHoldingHeart style={{marginRight:5}}/> Dons</Link>
 
+        {/* --- MENU DÉROULANT "COMMUNAUTÉ" (Regroupe le reste) --- */}
+        {user && (
+            <div className="nav-dropdown">
+                <button className="dropdown-btn">
+                    <FaUsers style={{marginRight:5}}/> Communauté <FaCaretDown style={{marginLeft:3, fontSize:'0.8em'}} />
+                </button>
+                <div className="dropdown-content">
+                    <Link to="/groups"><FaUsers style={{marginRight:5}}/> Ministères & Groupes</Link>
+                    <Link to="/chat"><FaComments style={{marginRight:5}}/> Chat Global</Link>
+                    <Link to="/sermons"><FaYoutube style={{marginRight:5}}/> Médias & Sermons</Link>
+                    <Link to="/inbox"><FaEnvelope style={{marginRight:5}}/> Messagerie Privée</Link>
+                    <Link to="/members"><FaUsers style={{marginRight:5}}/> Annuaire Membres</Link>
+                </div>
+            </div>
+        )}
+
         {user ? (
             <>
-                <Link to="/sermons"><FaYoutube style={{marginRight:5}}/> Médias</Link>
-                <Link to="/members"><FaUsers style={{marginRight:5}}/> Communauté</Link>
-                <Link to="/inbox"><FaEnvelope style={{marginRight:5}}/> Messagerie</Link>
-                {user.role === 'admin' && (<Link to="/admin" style={{ color:'#dc2626', fontWeight:'bold', border:'1px solid #dc2626', borderRadius:'20px', padding:'5px 15px' }}><FaShieldAlt style={{marginRight:5}}/> Admin</Link>)}
+                {user.role === 'admin' && (
+                    <Link to="/admin" style={{ color:'#dc2626', fontWeight:'bold', border:'1px solid #dc2626', borderRadius:'20px', padding:'5px 15px' }}>
+                        <FaShieldAlt style={{marginRight:5}}/> Admin
+                    </Link>
+                )}
+
                 <NotificationBadgeLink />
                 <Link to="/profile" className="profile-link"><FaUserCircle style={{marginRight:5}}/> Profil</Link>
             </>
@@ -136,21 +157,21 @@ const MainLayout = () => {
         <Routes>
             <Route path="/" element={<HomePage />} /> 
             <Route path="/feed" element={<FeedPage />} />
+            <Route path="/market" element={<MarketplacePage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/donations" element={<DonationPage />} />
             <Route path="/prayers" element={<PrayerWallPage />} />
-            <Route path="/sermons" element={<SermonsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
-            
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
+            <Route path="/sermons" element={<ProtectedRoute><SermonsPage /></ProtectedRoute>} />
             <Route path="/members" element={<ProtectedRoute><MembersPage /></ProtectedRoute>} />
             <Route path="/user/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
             <Route path="/inbox" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
@@ -174,10 +195,7 @@ const MainLayout = () => {
         </Routes>
       </div>
 
-      {/* --- BARRE BASSE --- */}
-      {/* Visible seulement si connecté, pas Admin, et sur Mobile (géré par CSS) */}
       {!isAdminRoute && user && <BottomNav />}
-
       {!isAdminRoute && <FeedbackButton />}
       {!isAdminRoute && <div className="desktop-only"><Footer /></div>}
     </>

@@ -1,14 +1,22 @@
 const mongoose = require('mongoose');
 
 const postSchema = mongoose.Schema({
-  content: { type: String, required: true },
-  image: { type: String }, // URL de l'image optionnelle
+  content: { type: String },
+  image: { type: String }, // URL de l'image (Cloudinary)
+  
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Qui a aimé ?
+  
+  // NOUVEAU CHAMP CRUCIAL : L'ID du Groupe (optionnel)
+  // Si ce champ est rempli, le post est PRIVÉ au groupe.
+  // S'il est vide, le post est PUBLIC (Fil d'actu).
+  group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' }, 
+
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  
   comments: [{
-    text: String,
+    text: { type: String, required: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    date: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now }
   }]
 }, {
   timestamps: true

@@ -2,11 +2,13 @@ import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaSignInAlt, FaEye, FaEyeSlash } from 'react-icons/fa'; // Ajout Eye
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // État pour voir/cacher
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -15,7 +17,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Bon retour parmi nous ! 👋");
-      navigate('/feed'); // Redirection vers le fil d'actu
+      navigate('/feed');
     } catch (err) {
       toast.error("Erreur : " + err.message);
     }
@@ -29,33 +31,30 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ position: 'relative', marginBottom: '20px' }}>
             <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input 
-              type="email" 
-              placeholder="Email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
-              style={{ paddingLeft: '45px' }}
-            />
+            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '10px' }}>
             <FaLock style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
             <input 
-              type="password" 
-              placeholder="Mot de passe" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
-              style={{ paddingLeft: '45px' }}
+                type={showPassword ? "text" : "password"} // Bascule type
+                placeholder="Mot de passe" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+                style={{ paddingLeft: '45px', paddingRight: '40px' }}
             />
+            {/* ICÔNE ŒIL CLIQUABLE */}
+            <span 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', top: '15px', right: '15px', color: '#aaa', cursor: 'pointer' }}
+            >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
 
-          {/* --- LE LIEN MANQUANT --- */}
           <div style={{ textAlign: 'right', marginBottom: '20px' }}>
-            <Link to="/forgot-password" style={{ color: 'var(--primary)', fontSize: '0.9em', textDecoration: 'none' }}>
-              Mot de passe oublié ?
-            </Link>
+            <Link to="/forgot-password" style={{ color: 'var(--primary)', fontSize: '0.9em', textDecoration: 'none' }}>Mot de passe oublié ?</Link>
           </div>
 
           <button type="submit" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1em' }}>

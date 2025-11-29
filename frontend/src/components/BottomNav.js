@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { FaNewspaper, FaUsers, FaComments, FaUserCircle, FaCalendarAlt } from 'react-icons/fa';
+import { FaNewspaper, FaUsers, FaUserCircle, FaStore, FaEnvelope } from 'react-icons/fa';
 
 export default function BottomNav() {
   
-  // Style pour le lien actif (Doré) vs inactif (Gris)
   const getLinkStyle = ({ isActive }) => ({
     flex: 1,
     display: 'flex',
@@ -11,10 +10,10 @@ export default function BottomNav() {
     alignItems: 'center',
     justifyContent: 'center',
     textDecoration: 'none',
-    color: isActive ? '#DFA92E' : '#888', // Var --primary vs gris
-    fontSize: '0.75rem', // Texte petit
+    color: isActive ? '#DFA92E' : '#888',
+    fontSize: '0.7rem',
     fontWeight: isActive ? 'bold' : 'normal',
-    padding: '10px 0',
+    padding: '8px 0',
     transition: 'color 0.2s'
   });
 
@@ -27,9 +26,9 @@ export default function BottomNav() {
         <span>Fil</span>
       </NavLink>
 
-      <NavLink to="/events" style={getLinkStyle}>
-        <FaCalendarAlt size={iconSize} style={{ marginBottom: 4 }} />
-        <span>Events</span>
+      <NavLink to="/market" style={getLinkStyle}>
+        <FaStore size={iconSize} style={{ marginBottom: 4 }} />
+        <span>Marché</span>
       </NavLink>
 
       <NavLink to="/groups" style={getLinkStyle}>
@@ -37,9 +36,10 @@ export default function BottomNav() {
         <span>Groupes</span>
       </NavLink>
 
+      {/* REMPLACEMENT ICI : Messages à la place de Dons */}
       <NavLink to="/inbox" style={getLinkStyle}>
-        <FaComments size={iconSize} style={{ marginBottom: 4 }} />
-        <span>Chats</span>
+        <FaEnvelope size={iconSize} style={{ marginBottom: 4 }} />
+        <span>Messages</span>
       </NavLink>
 
       <NavLink to="/profile" style={getLinkStyle}>
