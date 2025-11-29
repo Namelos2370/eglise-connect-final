@@ -1,7 +1,8 @@
-// frontend/src/config.js
+
+const PROD_API_URL = 'https://eglise-api-final.onrender.com';
 
 const API_URL = window.location.hostname === 'localhost' 
-  ? 'https://localhost:3002' 
-  : 'https://eglise-api-final.onrender.com'; // <--- REPLACE THIS with your actual Render URL
+  ? 'http://localhost:3002' 
+  : PROD_API_URL;
 
 export default API_URL;

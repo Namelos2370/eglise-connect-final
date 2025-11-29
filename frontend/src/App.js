@@ -9,7 +9,7 @@ import {
   FaYoutube, FaBars, FaTimes, FaShieldAlt
 } from 'react-icons/fa';
 
-// --- IMPORTS DES PAGES ---
+// --- PAGES ---
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage'; 
@@ -33,6 +33,8 @@ import PrivacyPage from './pages/PrivacyPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import FeedbackPage from './pages/FeedbackPage';
+import GroupsPage from './pages/GroupsPage';
+import GroupDetailsPage from './pages/GroupDetailsPage';
 
 // --- ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
@@ -46,7 +48,8 @@ import FeedbackManager from './pages/admin/FeedbackManager';
 // --- COMPOSANTS ---
 import Footer from './components/Footer';
 import Spinner from './components/Spinner';
-import FeedbackButton from './components/FeedbackButton'; // <--- IMPORT DU BOUTON
+import FeedbackButton from './components/FeedbackButton';
+import BottomNav from './components/BottomNav'; // <--- IL EST LÀ !
 
 import './styles/App.css'; 
 
@@ -87,15 +90,16 @@ const NavigationBar = () => {
         </Link>
       </div>
       
-      <div className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+      {/* Menu Burger (Visible seulement si pas de BottomNav, donc desktop) */}
+      <div className="menu-toggle desktop-only" onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <FaTimes /> : <FaBars />}
       </div>
 
       <div className={`nav-links ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
         <Link to="/feed"><FaNewspaper style={{marginRight:5}}/> Fil</Link>
         <Link to="/events"><FaCalendarAlt style={{marginRight:5}}/> Events</Link>
+        <Link to="/groups"><FaUsers style={{marginRight:5}}/> Ministères</Link>
         <Link to="/prayers"><FaPrayingHands style={{marginRight:5}}/> Prières</Link>
-        <Link to="/chat"><FaComments style={{marginRight:5}}/> Groupe</Link>
         <Link to="/donations"><FaHandHoldingHeart style={{marginRight:5}}/> Dons</Link>
 
         {user ? (
@@ -103,13 +107,7 @@ const NavigationBar = () => {
                 <Link to="/sermons"><FaYoutube style={{marginRight:5}}/> Médias</Link>
                 <Link to="/members"><FaUsers style={{marginRight:5}}/> Communauté</Link>
                 <Link to="/inbox"><FaEnvelope style={{marginRight:5}}/> Messagerie</Link>
-                
-                {user.role === 'admin' && (
-                    <Link to="/admin" style={{ color:'#dc2626', fontWeight:'bold', border:'1px solid #dc2626', borderRadius:'20px', padding:'5px 15px' }}>
-                        <FaShieldAlt style={{marginRight:5}}/> Admin
-                    </Link>
-                )}
-
+                {user.role === 'admin' && (<Link to="/admin" style={{ color:'#dc2626', fontWeight:'bold', border:'1px solid #dc2626', borderRadius:'20px', padding:'5px 15px' }}><FaShieldAlt style={{marginRight:5}}/> Admin</Link>)}
                 <NotificationBadgeLink />
                 <Link to="/profile" className="profile-link"><FaUserCircle style={{marginRight:5}}/> Profil</Link>
             </>
@@ -127,6 +125,7 @@ const NavigationBar = () => {
 
 const MainLayout = () => {
   const location = useLocation();
+  const { user } = useContext(AuthContext);
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
@@ -136,26 +135,22 @@ const MainLayout = () => {
       <div className={isAdminRoute ? '' : 'container'}>
         <Routes>
             <Route path="/" element={<HomePage />} /> 
-            
-            {/* ROUTES PUBLIQUES */}
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/donations" element={<DonationPage />} />
             <Route path="/prayers" element={<PrayerWallPage />} />
+            <Route path="/sermons" element={<SermonsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             
-            {/* AUTH */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
-            {/* ROUTES PROTÉGÉES */}
-            <Route path="/sermons" element={<ProtectedRoute><SermonsPage /></ProtectedRoute>} />
             <Route path="/members" element={<ProtectedRoute><MembersPage /></ProtectedRoute>} />
             <Route path="/user/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
             <Route path="/inbox" element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
@@ -165,7 +160,9 @@ const MainLayout = () => {
             <Route path="/edit-event/:id" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             
-            {/* ADMIN */}
+            <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+            <Route path="/groups/:id" element={<ProtectedRoute><GroupDetailsPage /></ProtectedRoute>} />
+            
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="users" element={<UsersManager />} />
@@ -177,10 +174,12 @@ const MainLayout = () => {
         </Routes>
       </div>
 
-      {/* BOUTON FEEDBACK (Uniquement sur le site public/membre, pas dans l'admin) */}
-      {!isAdminRoute && <FeedbackButton />}
+      {/* --- BARRE BASSE --- */}
+      {/* Visible seulement si connecté, pas Admin, et sur Mobile (géré par CSS) */}
+      {!isAdminRoute && user && <BottomNav />}
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <FeedbackButton />}
+      {!isAdminRoute && <div className="desktop-only"><Footer /></div>}
     </>
   );
 };

@@ -1,0 +1,29 @@
+{
+  "home": {
+    "welcome": "Bienvenue sur Église Connect",
+    "subtitle": "Paix à vous, {{name}}.",
+    "guest_subtitle": "Unissons nos cœurs, connectons nos âmes.",
+    "login": "Connexion",
+    "signup": "Inscription",
+    "life": "La Vie de la Communauté",
+    "why_us": "Pourquoi nous rejoindre ?",
+    "newsletter_title": "Restez informé",
+    "newsletter_desc": "Inscrivez-vous pour recevoir les nouvelles.",
+    "subscribe": "S'inscrire",
+    "stats_members": "Membres Actifs",
+    "stats_prayers": "Prières",
+    "stats_countries": "Pays"
+  },
+  "menu": {
+    "feed": "Fil d'Actu",
+    "events": "Événements",
+    "prayers": "Prières",
+    "groups": "Groupe",
+    "donations": "Dons",
+    "media": "Médias",
+    "community": "Communauté",
+    "inbox": "Messagerie",
+    "profile": "Profil",
+    "admin": "Admin"
+  }
+}

@@ -18,21 +18,22 @@ const mediaRoutes = require('./routes/media');
 const newsletterRoutes = require('./routes/newsletter');
 const adminRoutes = require('./routes/admin');
 const feedbackRoutes = require('./routes/feedback');
+const groupRoutes = require('./routes/groups'); // <--- NOUVEAU MODULE
 
 const app = express();
 
-// --- SÉCURITÉ CORS (Mise en ligne) ---
+// --- MIDDLEWARES ---
 app.use(cors({
-  origin: '*', // Autorise temporairement tout le monde pour faciliter le déploiement
-  // Une fois le Frontend en ligne, tu pourras remplacer '*' par l'URL de ton site Vercel
-  // ex: origin: ['http://localhost:3000', 'https://eglise-connect.vercel.app'],
+  origin: '*', // Autorise toutes les connexions (Mobile & Web)
   credentials: true
 }));
 
-// --- MIDDLEWARES ---
-// Limite augmentée pour accepter les vidéos/images lourdes
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+// Limite augmentée pour accepter les gros fichiers (vidéos, audios)
+app.use(express.json({ limit: '150mb' }));
+app.use(express.urlencoded({ limit: '150mb', extended: true }));
+
+// Dossier uploads (gardé par sécurité)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- CONNEXION BASE DE DONNÉES ---
 mongoose.connect(process.env.MONGO_URI)
@@ -53,10 +54,11 @@ app.use('/media', mediaRoutes);
 app.use('/newsletter', newsletterRoutes);
 app.use('/admin', adminRoutes);
 app.use('/feedback', feedbackRoutes);
+app.use('/groups', groupRoutes); // <--- ACTIVATION DE LA ROUTE GROUPES
 
-// Route de test (Pour vérifier que le serveur est en vie sur Render)
+// Route de test
 app.get('/', (req, res) => {
-  res.send('API Église Connect est EN LIGNE 🚀');
+  res.send('API Église Connect V2.1 en ligne 🚀');
 });
 
 // --- DÉMARRAGE ---

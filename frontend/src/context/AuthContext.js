@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import API_URL from '../config';
 
 export const AuthContext = createContext();
 
@@ -6,41 +7,40 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ METS ICI TON VRAI LIEN RENDER (celui que tu as copié tout à l'heure)
-  // Exemple : https://eglise-api.onrender.com
-  // Ne mets PAS de slash à la fin.
-  const API_URL = "https://eglise-api.onrender.com"; 
-
+  // Vérification de session au démarrage
   useEffect(() => {
-    console.log("🔍 AuthContext chargé. API cible :", API_URL); // Pour vérifier dans la console
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch(`${API_URL}/auth/me`, { 
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => {
-        if (res.ok) return res.json();
-        throw new Error('Token invalide');
-      })
-      .then(userData => {
-        console.log("✅ Utilisateur connecté :", userData.email);
-        setUser(userData);
-      })
-      .catch(() => {
-        console.log("❌ Token invalide, déconnexion.");
-        localStorage.removeItem('token');
+    const checkUserLoggedIn = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
         setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
-    if(token) setTimeout(() => setLoading(false), 500);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, { 
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        } else {
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Erreur Auth:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUserLoggedIn();
   }, []);
 
+  // FONCTION LOGIN AMÉLIORÉE (Sans rechargement de page)
   const login = async (email, password) => {
-    console.log("🚀 Tentative de connexion vers :", `${API_URL}/auth/login`);
-    
+    // 1. Récupérer le token
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,9 +49,20 @@ export const AuthProvider = ({ children }) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
     
-    console.log("✅ Connexion réussie !");
     localStorage.setItem('token', data.token);
-    window.location.reload();
+
+    // 2. Récupérer immédiatement les infos de l'utilisateur
+    const resMe = await fetch(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${data.token}` }
+    });
+    
+    if (resMe.ok) {
+        const userData = await resMe.json();
+        setUser(userData); // Mise à jour immédiate de l'état
+        return true; // Succès
+    } else {
+        throw new Error("Erreur lors de la récupération du profil");
+    }
   };
 
   const signup = async (name, email, password) => {
@@ -62,8 +73,17 @@ export const AuthProvider = ({ children }) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
+    
     localStorage.setItem('token', data.token);
-    window.location.reload();
+    
+    // Connexion automatique après inscription
+    const resMe = await fetch(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${data.token}` }
+    });
+    if (resMe.ok) {
+        const userData = await resMe.json();
+        setUser(userData);
+    }
   };
 
   const logout = () => {

@@ -1,0 +1,29 @@
+{
+  "home": {
+    "welcome": "Welcome to Church Connect",
+    "subtitle": "Peace be with you, {{name}}.",
+    "guest_subtitle": "Uniting hearts, connecting souls.",
+    "login": "Login",
+    "signup": "Sign Up",
+    "life": "Community Life",
+    "why_us": "Why join us?",
+    "newsletter_title": "Stay Updated",
+    "newsletter_desc": "Subscribe to receive community news.",
+    "subscribe": "Subscribe",
+    "stats_members": "Active Members",
+    "stats_prayers": "Prayers",
+    "stats_countries": "Countries"
+  },
+  "menu": {
+    "feed": "News Feed",
+    "events": "Events",
+    "prayers": "Prayers",
+    "groups": "Group Chat",
+    "donations": "Giving",
+    "media": "Media",
+    "community": "Community",
+    "inbox": "Messages",
+    "profile": "Profile",
+    "admin": "Admin"
+  }
+}

@@ -17,7 +17,7 @@ export default function MembersPage() {
     const fetchMembers = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch('http://localhost:3002/users', {
+        const res = await fetch('https://eglise-api-final.onrender.com2/users', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setMembers(await res.json());
