@@ -1,5 +1,5 @@
 
-const PROD_API_URL = 'https://eglise-api-final.onrender.com';
+const PROD_API_URL = 'https://eglise-api.onrender.com';
 
 const API_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:3002' 

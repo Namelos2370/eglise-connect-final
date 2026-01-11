@@ -25,10 +25,8 @@ const projectRoutes = require('./routes/projects');
 const app = express();
 
 // --- MIDDLEWARES ---
-app.use(cors({
-  origin: '*', // Autorise toutes les connexions (Mobile & Web)
-  credentials: true
-}));
+const cors = require('cors');
+app.use(cors());
 
 // Limite augmentée pour accepter les gros fichiers (vidéos, audios)
 app.use(express.json({ limit: '150mb' }));
