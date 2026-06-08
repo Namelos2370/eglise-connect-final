@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import API_URL from './config';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext, useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
@@ -67,7 +68,7 @@ const NotificationBadgeLink = () => {
     useEffect(() => {
         if (!user) return;
         const fetchCount = async () => {
-            try { const res = await fetch('http://localhost:3002/notifications/unread-count', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+            try { const res = await fetch(`${API_URL}/notifications/unread-count`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
             if (res.ok) setCount((await res.json()).count); } catch(e) {}
         };
         fetchCount(); const interval = setInterval(fetchCount, 10000); return () => clearInterval(interval);

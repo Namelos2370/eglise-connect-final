@@ -1,3 +1,4 @@
+import API_URL from './../config';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -37,7 +38,7 @@ export default function InboxPage() {
     const fetchConversations = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch('http://localhost:3002/conversations', {
+        const res = await fetch(`${API_URL}/conversations`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setConversations(await res.json());

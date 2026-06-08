@@ -1,3 +1,4 @@
+import API_URL from './../config';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHeart, FaComment, FaEnvelope, FaBell } from 'react-icons/fa';
@@ -11,13 +12,13 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:3002/notifications', {
+    const res = await fetch(`${API_URL}/notifications`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
       setNotifications(await res.json());
       // Marquer comme lues après chargement
-      await fetch('http://localhost:3002/notifications/read-all', {
+      await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
       });
     }

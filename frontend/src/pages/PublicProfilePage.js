@@ -1,3 +1,4 @@
+import API_URL from './../config';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -17,7 +18,7 @@ export default function PublicProfilePage() {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch(`http://localhost:3002/users/${userId}`, {
+        const res = await fetch(`${API_URL}/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -36,7 +37,7 @@ export default function PublicProfilePage() {
 
   const fetchUserPosts = async (token) => {
     try {
-        const res = await fetch(`http://localhost:3002/posts/user/${userId}`, {
+        const res = await fetch(`${API_URL}/posts/user/${userId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setUserPosts(await res.json());
@@ -47,7 +48,7 @@ export default function PublicProfilePage() {
     const token = localStorage.getItem('token');
     if (profile.isPublic) {
         try {
-            const res = await fetch(`http://localhost:3002/conversations/init/${userId}`, {
+            const res = await fetch(`${API_URL}/conversations/init/${userId}`, {
                 method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -64,12 +65,12 @@ export default function PublicProfilePage() {
     if (!inviteMessage.trim()) return toast.warning("Message vide");
     const token = localStorage.getItem('token');
     try {
-        const resConv = await fetch(`http://localhost:3002/conversations/init/${userId}`, {
+        const resConv = await fetch(`${API_URL}/conversations/init/${userId}`, {
             method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
         });
         if (resConv.ok) {
             const data = await resConv.json();
-            const resMsg = await fetch(`http://localhost:3002/conversations/${data.conversation._id}/messages`, {
+            const resMsg = await fetch(`${API_URL}/conversations/${data.conversation._id}/messages`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ content: inviteMessage })
             });

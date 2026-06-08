@@ -1,3 +1,4 @@
+import API_URL from './../config';
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -49,7 +50,7 @@ export default function CreateEventPage() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await fetch('http://localhost:3002/events', {
+      const res = await fetch(`${API_URL}/events`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }, // Pas de Content-Type manuel avec FormData
         body: data

@@ -1,3 +1,4 @@
+import API_URL from './../config';
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -17,7 +18,7 @@ export default function EditEventPage() {
     const fetchEvent = async () => {
         const token = localStorage.getItem('token');
         try {
-            const res = await fetch('http://localhost:3002/events', { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${API_URL}/events`, { headers: { 'Authorization': `Bearer ${token}` } });
             if(res.ok) {
                 const events = await res.json();
                 const event = events.find(e => e._id === id);
@@ -55,7 +56,7 @@ export default function EditEventPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3002/events/${id}`, {
+      const res = await fetch(`${API_URL}/events/${id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: data
