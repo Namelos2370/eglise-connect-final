@@ -48,7 +48,7 @@ router.post('/mobile-payment', async (req, res) => {
         description: "Soutien Église Connect",
         external_reference: externalRef,
         email: email || "anonyme@eglise-connect.com", // Email obligatoire pour Campay
-        redirect_url: `${process.env.CLIENT_URL || 'http://localhost:3000'}/donations`
+        redirect_url: `${process.env.CLIENT_URL || 'https://eglise-connect.com'}/donations`
       }
     };
 
