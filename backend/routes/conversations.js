@@ -44,8 +44,8 @@ router.post('/:id/messages', auth, cleanContent, async (req, res) => {
     const conversation = await Conversation.findById(req.params.id).populate('participants');
     if (!conversation) return res.status(404).json({ message: "Introuvable" });
 
-    const otherUser = conversation.participants.find(p => p._id.toString() !== req.auth.userId);
-    
+    const otherUser = conversation.participants.find(p => p._id && p._id.toString() !== req.auth.userId);
+
     // LOGIQUE INVITATION
     if (otherUser && otherUser.isPublic === false) {
         const replyCount = await Message.countDocuments({ conversationId: req.params.id, sender: otherUser._id });
@@ -76,6 +76,10 @@ router.post('/:id/messages', auth, cleanContent, async (req, res) => {
 // 5. DELETE CONV
 router.delete('/:id', auth, async (req, res) => {
   try {
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) return res.status(404).json({ message: "Introuvable" });
+    const isParticipant = conversation.participants.some(p => p.toString() === req.auth.userId);
+    if (!isParticipant) return res.status(403).json({ message: "Non autorisé" });
     await Conversation.findByIdAndDelete(req.params.id);
     await Message.deleteMany({ conversationId: req.params.id });
     res.status(200).json({ message: "Conversation supprimée" });

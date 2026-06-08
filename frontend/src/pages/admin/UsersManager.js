@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaTrash, FaSearch } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function UsersManager() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
 
   const fetchUsers = async () => {
-    const res = await fetch('http://localhost:3002/admin/users', {
+    const res = await fetch(`${API_URL}/admin/users`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     if(res.ok) setUsers(await res.json());
@@ -17,7 +18,7 @@ export default function UsersManager() {
 
   const handleDelete = async (id) => {
     if(!window.confirm("Bannir cet utilisateur et supprimer ses données ?")) return;
-    const res = await fetch(`http://localhost:3002/admin/users/${id}`, {
+    const res = await fetch(`${API_URL}/admin/users/${id}`, {
         method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     if(res.ok) { toast.success("Utilisateur banni"); fetchUsers(); }

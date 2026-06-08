@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaTrash, FaPaperPlane, FaPlus, FaEnvelopeOpenText, FaPaste, FaUsers, FaSpinner } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function NewsletterManager() {
   const [subscribers, setSubscribers] = useState([]);
@@ -21,7 +22,7 @@ export default function NewsletterManager() {
   const fetchSubscribers = async () => {
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch('http://localhost:3002/admin/newsletter', {
+        const res = await fetch('${API_URL}/admin/newsletter', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setSubscribers(await res.json());
@@ -32,7 +33,7 @@ export default function NewsletterManager() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch('http://localhost:3002/admin/newsletter/import', {
+        const res = await fetch('${API_URL}/admin/newsletter/import', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ textList: importText })
@@ -54,7 +55,7 @@ export default function NewsletterManager() {
     setSending(true);
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch('http://localhost:3002/admin/newsletter/send', {
+        const res = await fetch('${API_URL}/admin/newsletter/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ subject: emailSubject, message: emailBody })
@@ -73,7 +74,7 @@ export default function NewsletterManager() {
     if(!window.confirm("Retirer cet email ?")) return;
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch(`http://localhost:3002/admin/newsletter/${id}`, {
+        const res = await fetch(`${API_URL}/admin/newsletter/${id}`, {
             method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) { toast.success("Supprimé"); fetchSubscribers(); }

@@ -5,6 +5,10 @@ const Post = require('../models/Post');
 const Event = require('../models/Event');
 const Donation = require('../models/Donation');
 const Subscriber = require('../models/Subscriber');
+const Notification = require('../models/Notification');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+const Group = require('../models/Group');
 const auth = require('../middleware/authMiddleware');
 const admin = require('../middleware/adminMiddleware');
 const nodemailer = require('nodemailer');
@@ -50,9 +54,16 @@ router.get('/users', async (req, res) => {
 
 router.delete('/users/:id', async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    await Post.deleteMany({ author: req.params.id });
-    await Event.deleteMany({ organizer: req.params.id });
+    const userId = req.params.id;
+    await User.findByIdAndDelete(userId);
+    await Post.deleteMany({ author: userId });
+    await Event.deleteMany({ organizer: userId });
+    await Notification.deleteMany({ $or: [{ recipient: userId }, { sender: userId }] });
+    await Group.updateMany({ members: userId }, { $pull: { members: userId } });
+    const userConversations = await Conversation.find({ participants: userId });
+    const convIds = userConversations.map(c => c._id);
+    await Message.deleteMany({ conversationId: { $in: convIds } });
+    await Conversation.deleteMany({ participants: userId });
     res.status(200).json({ message: "Utilisateur supprimé." });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -155,18 +166,21 @@ router.post('/newsletter/send', async (req, res) => {
         const { subject, message } = req.body;
         const subscribers = await Subscriber.find();
         if (subscribers.length === 0) return res.status(400).json({ error: "Aucun abonné." });
-        const emailList = subscribers.map(s => s.email);
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            bcc: emailList,
-            subject: subject,
-            text: message,
-            html: `<div style="padding:20px;"><h2>Église Connect</h2><hr/><p>${message}</p></div>`
-        };
-
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: `Envoyé à ${emailList.length} personnes.` });
+        const BATCH_SIZE = 50;
+        let sent = 0;
+        for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+            const batch = subscribers.slice(i, i + BATCH_SIZE).map(s => s.email);
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                bcc: batch,
+                subject: subject,
+                text: message,
+                html: `<div style="padding:20px;"><h2>Église Connect</h2><hr/><p>${message}</p></div>`
+            });
+            sent += batch.length;
+        }
+        res.status(200).json({ message: `Envoyé à ${sent} personnes.` });
     } catch (error) { res.status(500).json({ error: "Erreur d'envoi." }); }
 });
 

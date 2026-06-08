@@ -92,6 +92,7 @@ router.post('/', auth, upload.single('image'), cleanContent, async (req, res) =>
 router.post('/:id/like', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post introuvable" });
     const userId = req.auth.userId;
     if (post.likes.includes(userId)) post.likes = post.likes.filter(id => id.toString() !== userId);
     else {
@@ -110,6 +111,7 @@ router.post('/:id/like', auth, async (req, res) => {
 router.post('/:id/comment', auth, cleanContent, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post introuvable" });
     post.comments.push({ text: req.body.text, author: req.auth.userId });
     await post.save();
     if (post.author.toString() !== req.auth.userId) await Notification.create({ recipient: post.author, sender: req.auth.userId, type: 'comment', postId: post._id });

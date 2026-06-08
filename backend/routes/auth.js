@@ -162,78 +162,19 @@ router.delete('/delete', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================================================================
-// 🛠️ PAGE DE SECOURS : SETUP ADMIN
-// ==================================================================
-router.get('/setup-admin', async (req, res) => {
+// PROMOTION ADMIN SÉCURISÉE (nécessite d'être déjà admin OU clé secrète serveur)
+router.post('/promote-admin', auth, async (req, res) => {
   try {
-    const users = await User.find();
-    let html = `
-      <html>
-        <head>
-          <title>Admin Setup</title>
-          <style>
-            body { font-family: sans-serif; padding: 40px; background: #f4f4f4; }
-            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            th, td { padding: 15px; border-bottom: 1px solid #ddd; text-align: left; }
-            th { background: #333; color: white; }
-            a.btn { display: inline-block; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; color: white; font-size: 14px; }
-            .btn-admin { background: #2ecc71; }
-            .btn-admin:hover { background: #27ae60; }
-            .btn-done { background: #ccc; color: #666; cursor: default; pointer-events: none; }
-            .link-home { display: inline-block; margin-top: 20px; color: #333; text-decoration: underline; }
-          </style>
-        </head>
-        <body>
-          <h1>👥 Gestion des Rôles</h1>
-          <p>Cliquez sur "Rendre Admin" pour donner les droits suprêmes à un utilisateur.</p>
-          <table>
-            <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Action</th></tr>`;
-            
-    users.forEach(u => {
-      const isAdmin = u.role === 'admin';
-      html += `<tr>
-        <td>${u.name}</td>
-        <td>${u.email}</td>
-        <td><strong>${u.role || 'user'}</strong></td>
-        <td>
-            ${isAdmin 
-                ? '<span class="btn btn-done">Déjà Admin ✅</span>' 
-                : `<a href="/auth/force-admin-id/${u._id}" class="btn btn-admin">⚡ Rendre Admin</a>`}
-        </td>
-      </tr>`;
-    });
-
-    html += `</table>
-             <br/>
-             <a href="${CLIENT_URL}/admin" class="link-home">Aller au Tableau de Bord →</a>
-             </body></html>`;
-             
-    res.send(html);
-  } catch (e) { res.send("Erreur : " + e.message); }
-});
-
-// Action : Force Admin par ID (Redirection automatique)
-router.get('/force-admin-id/:id', async (req, res) => {
-    try {
-        await User.findByIdAndUpdate(req.params.id, { role: 'admin' });
-        res.redirect('/auth/setup-admin'); // Rechargement automatique de la liste
-    } catch (e) { res.send("Erreur : " + e.message); }
-});
-
-// Action : Force Admin par Email (Route de secours directe)
-router.get('/promote-admin/:email', async (req, res) => {
-  try {
-    const user = await User.findOneAndUpdate({ email: req.params.email }, { role: 'admin' }, { new: true });
-    if(!user) return res.status(404).send("<h1>Erreur</h1><p>Aucun utilisateur trouvé avec cet email.</p>");
-    res.send(`
-        <div style="text-align:center; padding:50px; font-family:sans-serif;">
-            <h1 style="color:green">Succès ! 🎉</h1>
-            <p>L'utilisateur <strong>${user.email}</strong> est maintenant Administrateur.</p>
-            <a href="${CLIENT_URL}/admin" style="background:#333; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; font-size:20px;">Aller au Dashboard</a>
-        </div>
-    `);
-  } catch (error) { res.status(500).send(error.message); }
+    const requester = await User.findById(req.auth.userId);
+    if (!requester || requester.role !== 'admin') {
+      return res.status(403).json({ message: "Accès refusé." });
+    }
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email requis." });
+    const target = await User.findOneAndUpdate({ email }, { role: 'admin' }, { new: true });
+    if (!target) return res.status(404).json({ message: "Utilisateur introuvable." });
+    res.status(200).json({ message: `${target.email} est maintenant admin.` });
+  } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 module.exports = router;

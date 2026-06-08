@@ -18,8 +18,9 @@ const transporter = nodemailer.createTransport({
 router.post('/create-payment-intent', async (req, res) => {
   try {
     const { amount } = req.body;
+    if (!amount || amount <= 0 || amount > 10000000) return res.status(400).json({ error: "Montant invalide." });
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount, currency: 'eur', automatic_payment_methods: { enabled: true },
+      amount: Math.round(amount), currency: 'eur', automatic_payment_methods: { enabled: true },
     });
     res.send({ clientSecret: paymentIntent.client_secret });
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -47,7 +48,7 @@ router.post('/mobile-payment', async (req, res) => {
         description: "Soutien Église Connect",
         external_reference: externalRef,
         email: email || "anonyme@eglise-connect.com", // Email obligatoire pour Campay
-        redirect_url: "http://localhost:3000/donations" // Où revenir après le paiement
+        redirect_url: `${process.env.CLIENT_URL || 'http://localhost:3000'}/donations`
       }
     };
 
@@ -73,6 +74,9 @@ router.post('/mobile-payment', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { amount, type, guestName, guestEmail, paymentMethod } = req.body;
+
+    if (!amount || amount <= 0 || amount > 10000000) return res.status(400).json({ error: "Montant invalide." });
+
     let donorId = null;
     let finalEmail = guestEmail;
     let finalName = guestName || "Bienfaiteur";

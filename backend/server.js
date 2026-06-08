@@ -25,7 +25,6 @@ const projectRoutes = require('./routes/projects');
 const app = express();
 
 // --- MIDDLEWARES ---
-const cors = require('cors');
 app.use(cors());
 
 // Limite augmentée pour accepter les gros fichiers (vidéos, audios)
@@ -54,9 +53,7 @@ app.use('/media', mediaRoutes);
 app.use('/newsletter', newsletterRoutes);
 app.use('/admin', adminRoutes);
 app.use('/feedback', feedbackRoutes);
-app.use('/groups', groupRoutes); 
 app.use('/groups', groupRoutes);
-app.use('/services', serviceRoutes);
 app.use('/services', serviceRoutes);
 app.use('/projects', projectRoutes);
 

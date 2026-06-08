@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaTrash, FaNewspaper, FaCalendarAlt, FaExclamationTriangle, FaCommentDots, FaSync } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function ContentManager() {
   const [data, setData] = useState({ posts: [], events: [], comments: [] });
@@ -15,7 +16,7 @@ export default function ContentManager() {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch('http://localhost:3002/admin/content', {
+        const res = await fetch(`${API_URL}/admin/content`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -31,10 +32,9 @@ export default function ContentManager() {
     if(!window.confirm("Supprimer définitivement cet élément ?")) return;
     const token = localStorage.getItem('token');
     
-    let url = `http://localhost:3002/admin/${type}/${id}`;
-    // Cas spécial pour les commentaires : besoin de l'ID du post ET du commentaire
+    let url = `${API_URL}/admin/${type}/${id}`;
     if (type === 'comments') {
-        url = `http://localhost:3002/admin/comments/${secondId}/${id}`; // postID / commentID
+        url = `${API_URL}/admin/comments/${secondId}/${id}`;
     }
 
     try {

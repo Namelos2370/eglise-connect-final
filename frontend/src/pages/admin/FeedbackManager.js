@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaTrash, FaBug, FaLightbulb, FaHeart, FaQuestionCircle } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function FeedbackManager() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -10,7 +11,7 @@ export default function FeedbackManager() {
   const fetchFeedbacks = async () => {
     const token = localStorage.getItem('token');
     try {
-        const res = await fetch('http://localhost:3002/feedback/all', {
+        const res = await fetch('${API_URL}/feedback/all', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setFeedbacks(await res.json());
@@ -20,7 +21,7 @@ export default function FeedbackManager() {
   const handleDelete = async (id) => {
     if(!window.confirm("Supprimer ce feedback ?")) return;
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:3002/feedback/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    await fetch(`${API_URL}/feedback/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
     toast.success("Supprimé"); fetchFeedbacks();
   };
 

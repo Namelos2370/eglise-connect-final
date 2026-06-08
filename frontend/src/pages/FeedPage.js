@@ -43,13 +43,15 @@ export default function FeedPage() {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
         setFile(selectedFile);
-        setPreviewUrl(URL.createObjectURL(selectedFile)); // Créer une URL temporaire
+        setPreviewUrl(URL.createObjectURL(selectedFile));
     }
   };
 
   const clearFile = () => {
       setFile(null);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
       document.getElementById('fileInput').value = "";
   };
