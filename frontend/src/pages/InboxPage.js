@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaChevronRight, FaPlus, FaCommentDots, FaEnvelopeOpenText, FaUser } from 'react-icons/fa';
+import API_URL from '../config';
 
 // --- SOUS-COMPOSANT AVATAR SÉCURISÉ ---
 // Il gère lui-même l'erreur d'image sans faire planter la page
@@ -37,7 +38,7 @@ export default function InboxPage() {
     const fetchConversations = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch('http://localhost:3002/conversations', {
+        const res = await fetch(`${API_URL}/conversations`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setConversations(await res.json());

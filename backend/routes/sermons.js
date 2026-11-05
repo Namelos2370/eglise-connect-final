@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Sermon = require('../models/Sermon');
 const auth = require('../middleware/authMiddleware');
+const adminOnly = require('../middleware/adminMiddleware');
 
 // 1. LISTER LES SERMONS
 router.get('/', async (req, res) => {
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
 });
 
 // 2. AJOUTER UN SERMON
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, adminOnly, async (req, res) => {
   try {
     const { title, preacher, videoUrl, description, date } = req.body;
     const newSermon = new Sermon({

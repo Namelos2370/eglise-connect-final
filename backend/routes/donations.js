@@ -8,6 +8,14 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const axios = require('axios'); // Indispensable pour parler à Campay
 const nodemailer = require('nodemailer');
 
+const CLIENT_URL = process.env.CLIENT_URL || 'https://eglise-connect.com';
+const escapeHtml = (str) => String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+// Retourne un entier positif borné, ou null
+const parseAmount = (value, min, max) => {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= min && n <= max ? n : null;
+};
+
 // Config Email
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -17,9 +25,11 @@ const transporter = nodemailer.createTransport({
 // 1. STRIPE (CARTE)
 router.post('/create-payment-intent', async (req, res) => {
   try {
-    const { amount } = req.body;
+    // Montant en centimes d'euro : entre 1 € et 10 000 €
+    const amount = parseAmount(req.body.amount, 100, 1000000);
+    if (!amount) return res.status(400).json({ error: "Montant invalide." });
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount, currency: 'eur', automatic_payment_methods: { enabled: true },
+      amount, currency: 'eur', automatic_payment_methods: { enabled: true },
     });
     res.send({ clientSecret: paymentIntent.client_secret });
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -28,7 +38,10 @@ router.post('/create-payment-intent', async (req, res) => {
 // 2. MOBILE MONEY (CAMPAY - VRAI CODE)
 router.post('/mobile-payment', async (req, res) => {
   try {
-    const { amount, email } = req.body;
+    const { email } = req.body;
+    // Montant en XAF : entre 100 et 10 000 000
+    const amount = parseAmount(req.body.amount, 100, 10000000);
+    if (!amount) return res.status(400).json({ error: "Montant invalide." });
     
     // Référence unique pour suivre la transaction
     const externalRef = `DON-${Date.now()}`;
@@ -47,7 +60,7 @@ router.post('/mobile-payment', async (req, res) => {
         description: "Soutien Église Connect",
         external_reference: externalRef,
         email: email || "anonyme@eglise-connect.com", // Email obligatoire pour Campay
-        redirect_url: "http://localhost:3000/donations" // Où revenir après le paiement
+        redirect_url: `${CLIENT_URL}/donations` // Où revenir après le paiement
       }
     };
 
@@ -72,7 +85,23 @@ router.post('/mobile-payment', async (req, res) => {
 // 3. ENREGISTRER LE DON (Base de données)
 router.post('/', async (req, res) => {
   try {
-    const { amount, type, guestName, guestEmail, paymentMethod } = req.body;
+    const { type, guestName, guestEmail, paymentMethod, paymentIntentId } = req.body;
+    const amount = parseAmount(req.body.amount, 1, 100000000);
+    if (!amount) return res.status(400).json({ error: "Montant invalide." });
+    if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(guestEmail).trim())) {
+      return res.status(400).json({ error: "Email invalide." });
+    }
+
+    // Un don par carte n'est enregistré que si Stripe confirme le paiement
+    let status = 'pending';
+    let paymentRef;
+    if (paymentIntentId) {
+      const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      if (intent.status !== 'succeeded') return res.status(402).json({ error: "Paiement non confirmé." });
+      if (await Donation.exists({ paymentRef: paymentIntentId })) return res.status(409).json({ error: "Don déjà enregistré." });
+      status = 'confirmed';
+      paymentRef = paymentIntentId;
+    }
     let donorId = null;
     let finalEmail = guestEmail;
     let finalName = guestName || "Bienfaiteur";
@@ -89,7 +118,8 @@ router.post('/', async (req, res) => {
     
     const newDonation = new Donation({
       amount, type, paymentMethod: paymentMethod || 'Carte Bancaire', 
-      donor: donorId, guestName: donorId ? undefined : guestName, guestEmail: donorId ? undefined : guestEmail
+      donor: donorId, guestName: donorId ? undefined : guestName, guestEmail: donorId ? undefined : guestEmail,
+      status, paymentRef
     });
 
     await newDonation.save();
@@ -98,7 +128,7 @@ router.post('/', async (req, res) => {
     if (finalEmail) {
         const mailOptions = {
             from: process.env.EMAIL_USER, to: finalEmail, subject: '🙏 Merci pour votre don',
-            html: `<div style="padding:20px;"><h2>Église Connect</h2><p>Merci <strong>${finalName}</strong> pour votre don de <strong>${amount} XAF</strong>.</p></div>`
+            html: `<div style="padding:20px;"><h2>Église Connect</h2><p>Merci <strong>${escapeHtml(finalName)}</strong> pour votre don de <strong>${amount} ${paymentRef ? 'centimes d\'euro' : 'XAF'}</strong>.</p></div>`
         };
         transporter.sendMail(mailOptions).catch(e => console.error("Erreur mail:", e));
     }

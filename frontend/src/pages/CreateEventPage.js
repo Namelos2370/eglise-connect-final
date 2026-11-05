@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { FaCamera, FaCalendarPlus, FaMapMarkerAlt, FaAlignLeft } from 'react-icons/fa';
+import API_URL from '../config';
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function CreateEventPage() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await fetch('http://localhost:3002/events', {
+      const res = await fetch(`${API_URL}/events`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }, // Pas de Content-Type manuel avec FormData
         body: data

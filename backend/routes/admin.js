@@ -27,7 +27,7 @@ router.get('/stats', async (req, res) => {
     const usersCount = await User.countDocuments();
     const postsCount = await Post.countDocuments();
     const eventsCount = await Event.countDocuments();
-    const donationsTotal = await Donation.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]);
+    const donationsTotal = await Donation.aggregate([{ $match: { status: { $ne: 'pending' } } }, { $group: { _id: null, total: { $sum: "$amount" } } }]);
     const subscribersCount = await Subscriber.countDocuments();
     
     res.status(200).json({
@@ -43,7 +43,7 @@ router.get('/stats', async (req, res) => {
 // 2. UTILISATEURS
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const users = await User.find().select('-password -resetPasswordToken -resetPasswordExpires').sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -108,6 +108,14 @@ router.get('/finances', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+router.patch('/finances/:id/confirm', async (req, res) => {
+  try {
+    const donation = await Donation.findByIdAndUpdate(req.params.id, { status: 'confirmed' }, { new: true });
+    if (!donation) return res.status(404).json({ message: "Don introuvable." });
+    res.status(200).json(donation);
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
 // 5. NEWSLETTER
 router.get('/newsletter', async (req, res) => {
     try {
@@ -153,6 +161,7 @@ router.post('/newsletter/import', async (req, res) => {
 router.post('/newsletter/send', async (req, res) => {
     try {
         const { subject, message } = req.body;
+        if (!subject || !message) return res.status(400).json({ error: "Sujet et message requis." });
         const subscribers = await Subscriber.find();
         if (subscribers.length === 0) return res.status(400).json({ error: "Aucun abonné." });
         const emailList = subscribers.map(s => s.email);
