@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaMoneyBillWave, FaUserSecret, FaUser } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function FinanceManager() {
   const [donations, setDonations] = useState([]);
@@ -9,7 +10,7 @@ export default function FinanceManager() {
     const fetchFinances = async () => {
         const token = localStorage.getItem('token');
         try {
-            const res = await fetch('http://localhost:3002/admin/finances', {
+            const res = await fetch(`${API_URL}/admin/finances`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {

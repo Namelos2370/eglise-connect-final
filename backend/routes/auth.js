@@ -4,12 +4,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
+const adminOnly = require('../middleware/adminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-const CLIENT_URL = "https://eglise-connect.com"; 
+const CLIENT_URL = process.env.CLIENT_URL || "https://eglise-connect.com";
 
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -22,8 +25,12 @@ const transporter = nodemailer.createTransport({
 // 1. INSCRIPTION
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
-    const existingUser = await User.findOne({ email });
+    const { password, name } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ message: "Email invalide." });
+    if (typeof password !== 'string' || password.length < 8) return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères." });
+    if (!name || !String(name).trim()) return res.status(400).json({ message: "Le nom est requis." });
+    const existingUser = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
     if (existingUser) return res.status(400).json({ message: "Cet email est déjà utilisé." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,8 +45,9 @@ router.post('/signup', async (req, res) => {
 // 2. CONNEXION
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const password = req.body.password;
+    const email = String(req.body.email || '').trim();
+    const user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
     if (!user) return res.status(401).json({ message: "Identifiants incorrects." });
 
     const validPassword = await bcrypt.compare(password, user.password);
@@ -53,7 +61,7 @@ router.post('/login', async (req, res) => {
 // 3. MON PROFIL
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.auth.userId).select('-password');
+    const user = await User.findById(req.auth.userId).select('-password -resetPasswordToken -resetPasswordExpires');
     if (!user) return res.status(404).json({ message: "Non trouvé" });
     res.status(200).json(user);
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -99,7 +107,7 @@ router.put('/update', auth, async (req, res) => {
       req.auth.userId,
       { $set: updateData }, 
       { new: true }
-    ).select('-password');
+    ).select('-password -resetPasswordToken -resetPasswordExpires');
 
     res.status(200).json(updatedUser);
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -108,8 +116,9 @@ router.put('/update', auth, async (req, res) => {
 // 7. MOT DE PASSE OUBLIÉ (Envoi Email)
 router.post('/forgot-password', async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) return res.status(404).json({ message: "Email inconnu" });
+    const user = await User.findOne({ email: String(req.body.email || '').trim() }).collation({ locale: 'en', strength: 2 });
+    // Réponse identique que l'email existe ou non (évite l'énumération des comptes)
+    if (!user) return res.status(200).json({ message: "Si cet email existe, un lien vient d'être envoyé." });
 
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = resetToken;
@@ -127,7 +136,7 @@ router.post('/forgot-password', async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Email envoyé !" });
+    res.status(200).json({ message: "Si cet email existe, un lien vient d'être envoyé." });
   } catch (error) { 
     console.error(error);
     res.status(500).json({ error: "Erreur lors de l'envoi de l'email" }); 
@@ -137,6 +146,7 @@ router.post('/forgot-password', async (req, res) => {
 // 8. RÉINITIALISER LE MOT DE PASSE
 router.post('/reset-password/:token', async (req, res) => {
   try {
+    if (typeof req.body.password !== 'string' || req.body.password.length < 8) return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères." });
     const user = await User.findOne({
       resetPasswordToken: req.params.token,
       resetPasswordExpires: { $gt: Date.now() }
@@ -163,77 +173,23 @@ router.delete('/delete', auth, async (req, res) => {
 });
 
 // ==================================================================
-// 🛠️ PAGE DE SECOURS : SETUP ADMIN
+// 🛠️ GESTION DES RÔLES (réservé aux admins connectés)
 // ==================================================================
-router.get('/setup-admin', async (req, res) => {
+router.get('/admin/users', auth, adminOnly, async (req, res) => {
   try {
-    const users = await User.find();
-    let html = `
-      <html>
-        <head>
-          <title>Admin Setup</title>
-          <style>
-            body { font-family: sans-serif; padding: 40px; background: #f4f4f4; }
-            table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            th, td { padding: 15px; border-bottom: 1px solid #ddd; text-align: left; }
-            th { background: #333; color: white; }
-            a.btn { display: inline-block; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; color: white; font-size: 14px; }
-            .btn-admin { background: #2ecc71; }
-            .btn-admin:hover { background: #27ae60; }
-            .btn-done { background: #ccc; color: #666; cursor: default; pointer-events: none; }
-            .link-home { display: inline-block; margin-top: 20px; color: #333; text-decoration: underline; }
-          </style>
-        </head>
-        <body>
-          <h1>👥 Gestion des Rôles</h1>
-          <p>Cliquez sur "Rendre Admin" pour donner les droits suprêmes à un utilisateur.</p>
-          <table>
-            <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Action</th></tr>`;
-            
-    users.forEach(u => {
-      const isAdmin = u.role === 'admin';
-      html += `<tr>
-        <td>${u.name}</td>
-        <td>${u.email}</td>
-        <td><strong>${u.role || 'user'}</strong></td>
-        <td>
-            ${isAdmin 
-                ? '<span class="btn btn-done">Déjà Admin ✅</span>' 
-                : `<a href="/auth/force-admin-id/${u._id}" class="btn btn-admin">⚡ Rendre Admin</a>`}
-        </td>
-      </tr>`;
-    });
-
-    html += `</table>
-             <br/>
-             <a href="${CLIENT_URL}/admin" class="link-home">Aller au Tableau de Bord →</a>
-             </body></html>`;
-             
-    res.send(html);
-  } catch (e) { res.send("Erreur : " + e.message); }
+    const users = await User.find().select('name email role');
+    res.status(200).json(users);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Action : Force Admin par ID (Redirection automatique)
-router.get('/force-admin-id/:id', async (req, res) => {
-    try {
-        await User.findByIdAndUpdate(req.params.id, { role: 'admin' });
-        res.redirect('/auth/setup-admin'); // Rechargement automatique de la liste
-    } catch (e) { res.send("Erreur : " + e.message); }
-});
-
-// Action : Force Admin par Email (Route de secours directe)
-router.get('/promote-admin/:email', async (req, res) => {
+router.post('/promote-admin', auth, adminOnly, async (req, res) => {
   try {
-    const user = await User.findOneAndUpdate({ email: req.params.email }, { role: 'admin' }, { new: true });
-    if(!user) return res.status(404).send("<h1>Erreur</h1><p>Aucun utilisateur trouvé avec cet email.</p>");
-    res.send(`
-        <div style="text-align:center; padding:50px; font-family:sans-serif;">
-            <h1 style="color:green">Succès ! 🎉</h1>
-            <p>L'utilisateur <strong>${user.email}</strong> est maintenant Administrateur.</p>
-            <a href="${CLIENT_URL}/admin" style="background:#333; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; font-size:20px;">Aller au Dashboard</a>
-        </div>
-    `);
-  } catch (error) { res.status(500).send(error.message); }
+    const { email, userId } = req.body;
+    const filter = userId ? { _id: userId } : { email: String(email || '').trim().toLowerCase() };
+    const user = await User.findOneAndUpdate(filter, { role: 'admin' }, { new: true }).select('name email role');
+    if (!user) return res.status(404).json({ message: "Utilisateur introuvable." });
+    res.status(200).json({ message: `${user.email} est maintenant administrateur.`, user });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;

@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Subscriber = require('../models/Subscriber');
 const nodemailer = require('nodemailer');
-const auth = require('../middleware/authMiddleware'); // On protège l'envoi
+const auth = require('../middleware/authMiddleware');
+const adminOnly = require('../middleware/adminMiddleware');
+
+const escapeHtml = (str) => String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
 // Configuration du Facteur (Même que dans auth.js)
 const transporter = nodemailer.createTransport({
@@ -14,7 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // 1. LISTER LES ABONNÉS
-router.get('/', async (req, res) => {
+router.get('/', auth, adminOnly, async (req, res) => {
     try {
         const subs = await Subscriber.find().sort({ date: -1 });
         res.status(200).json(subs);
@@ -25,7 +28,7 @@ router.get('/', async (req, res) => {
 router.post('/subscribe', async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ message: "Email requis" });
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) return res.status(400).json({ message: "Email valide requis" });
         
         // Nettoyage de l'email
         const cleanEmail = email.trim().toLowerCase();
@@ -39,7 +42,7 @@ router.post('/subscribe', async (req, res) => {
 });
 
 // 3. IMPORT DE MASSE (NOUVEAU - Copier/Coller une liste)
-router.post('/import', auth, async (req, res) => {
+router.post('/import', auth, adminOnly, async (req, res) => {
     try {
         const { textList } = req.body; // Le gros texte copié/collé
         if (!textList) return res.status(400).json({ error: "Aucun texte fourni." });
@@ -71,7 +74,7 @@ router.post('/import', auth, async (req, res) => {
 });
 
 // 4. ENVOYER NEWSLETTER À TOUS (NOUVEAU)
-router.post('/send', auth, async (req, res) => {
+router.post('/send', auth, adminOnly, async (req, res) => {
     try {
         const { subject, message } = req.body;
         if (!subject || !message) return res.status(400).json({ error: "Sujet et message requis." });
@@ -96,8 +99,8 @@ router.post('/send', auth, async (req, res) => {
                 <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                     <h2 style="color: #DFA92E;">⛪ Église Connect</h2>
                     <hr style="border: 0; border-top: 1px solid #eee;" />
-                    <h3>${subject}</h3>
-                    <p style="white-space: pre-wrap; font-size: 16px; color: #333;">${message}</p>
+                    <h3>${escapeHtml(subject)}</h3>
+                    <p style="white-space: pre-wrap; font-size: 16px; color: #333;">${escapeHtml(message)}</p>
                     <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
                     <small style="color: #999;">Vous recevez cet email car vous êtes inscrit à la newsletter.</small>
                 </div>
@@ -114,7 +117,7 @@ router.post('/send', auth, async (req, res) => {
 });
 
 // 5. SUPPRIMER UN ABONNÉ
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, adminOnly, async (req, res) => {
     try {
         await Subscriber.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: "Abonné supprimé." });

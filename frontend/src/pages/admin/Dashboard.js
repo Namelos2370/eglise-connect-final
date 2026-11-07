@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { FaUsers, FaLayerGroup, FaCalendarCheck, FaCoins } from 'react-icons/fa';
+import API_URL from '../../config';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, posts: 0, events: 0, donations: 0 });
 
   useEffect(() => {
     const fetchStats = async () => {
-        const res = await fetch('http://localhost:3002/admin/stats', {
+        const res = await fetch(`${API_URL}/admin/stats`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if(res.ok) setStats(await res.json());

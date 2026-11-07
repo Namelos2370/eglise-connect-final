@@ -21,12 +21,16 @@ const feedbackRoutes = require('./routes/feedback');
 const groupRoutes = require('./routes/groups');
 const serviceRoutes = require('./routes/services');
 const projectRoutes = require('./routes/projects');
+const sermonRoutes = require('./routes/sermons');
 
 const app = express();
 
 // --- MIDDLEWARES ---
-const cors = require('cors');
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGINS || 'https://eglise-connect.com,https://www.eglise-connect.com,http://localhost:3000')
+  .split(',').map(o => o.trim());
+app.use(cors({
+  origin: (origin, cb) => (!origin || allowedOrigins.includes(origin)) ? cb(null, true) : cb(new Error('Origine non autorisée')),
+}));
 
 // Limite augmentée pour accepter les gros fichiers (vidéos, audios)
 app.use(express.json({ limit: '150mb' }));
@@ -54,11 +58,10 @@ app.use('/media', mediaRoutes);
 app.use('/newsletter', newsletterRoutes);
 app.use('/admin', adminRoutes);
 app.use('/feedback', feedbackRoutes);
-app.use('/groups', groupRoutes); 
 app.use('/groups', groupRoutes);
 app.use('/services', serviceRoutes);
-app.use('/services', serviceRoutes);
 app.use('/projects', projectRoutes);
+app.use('/sermons', sermonRoutes);
 
 app.get('/', (req, res) => {
   res.send('API Église Connect V2.1 en ligne 🚀');
