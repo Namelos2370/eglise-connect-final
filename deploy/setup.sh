@@ -32,7 +32,17 @@ if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 20
   apt-get install -y nodejs
 fi
 command -v pm2 >/dev/null || npm i -g pm2
-ufw allow OpenSSH >/dev/null && ufw allow 'Nginx Full' >/dev/null && ufw --force enable >/dev/null
+# Pare-feu : on n'active rien ; on ajoute seulement les règles si ufw est déjà actif (VPS partagé avec d'autres sites)
+if ufw status | grep -q 'Status: active'; then ufw allow OpenSSH >/dev/null; ufw allow 'Nginx Full' >/dev/null; fi
+
+# Port libre pour l'API (ne touche pas aux ports déjà utilisés par un autre site)
+PORT_API=3002
+if pm2 describe eglise-api >/dev/null 2>&1; then
+  PORT_API=$(pm2 jlist 2>/dev/null | python3 -c "import sys,json;print(next((p['pm2_env'].get('PORT') for p in json.load(sys.stdin) if p['name']=='eglise-api' and p['pm2_env'].get('PORT')),3002))" 2>/dev/null || echo 3002)
+else
+  while ss -ltn | awk '{print $4}' | grep -q ":$PORT_API$"; do PORT_API=$((PORT_API+1)); done
+fi
+echo "Port utilisé par l'API : $PORT_API"
 
 echo "=== Code ==="
 APP=/var/www/eglise-connect
@@ -44,7 +54,7 @@ fi
 cd "$APP/backend" && npm ci --omit=dev
 
 cat > .env <<ENV
-PORT=3002
+PORT=$PORT_API
 MONGO_URI=$MONGO_URI
 JWT_SECRET=$JWT_SECRET
 CLIENT_URL=https://$DOMAINE
@@ -61,7 +71,7 @@ chmod 600 .env
 
 echo "=== Démarrage de l'API ==="
 pm2 delete eglise-api >/dev/null 2>&1 || true
-pm2 start server.js --name eglise-api
+PORT=$PORT_API pm2 start server.js --name eglise-api --update-env
 pm2 save
 pm2 startup systemd -u root --hp /root >/dev/null 2>&1 || true
 
@@ -70,7 +80,7 @@ server {
   server_name api.$DOMAINE;
   client_max_body_size 100M;
   location / {
-    proxy_pass http://127.0.0.1:3002;
+    proxy_pass http://127.0.0.1:$PORT_API;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-Proto \$scheme;
@@ -78,7 +88,6 @@ server {
 }
 NGINX
 ln -sf /etc/nginx/sites-available/eglise-api /etc/nginx/sites-enabled/eglise-api
-rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
 echo "=== HTTPS ==="
@@ -91,5 +100,5 @@ if [ "$MYIP" = "$DNSIP" ]; then
 else
   echo "ATTENTION : api.$DOMAINE pointe vers '${DNSIP:-rien}' au lieu de $MYIP."
   echo "Crée l'enregistrement DNS A  api -> $MYIP, attends quelques minutes, puis relance la même commande."
-  echo "L'API tourne déjà en HTTP : curl http://127.0.0.1:3002"
+  echo "L'API tourne déjà en HTTP : curl http://127.0.0.1:$PORT_API"
 fi
