@@ -38,8 +38,12 @@ if [ -z "$MONGO_URI" ]; then
     echo "=== Installation de MongoDB 8.0 sur le VPS ==="
     apt-get install -y gnupg lsb-release
     curl -fsSL https://pgp.mongodb.com/server-8.0.asc | gpg --yes -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
-    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
-    apt-get update -y && apt-get install -y mongodb-org
+    # MongoDB ne publie de dépôt que pour certaines versions d'Ubuntu : sinon on utilise celui de 24.04 (noble)
+    CODENAME=$(lsb_release -cs)
+    case "$CODENAME" in jammy|noble) ;; *) CODENAME=noble ;; esac
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
+    apt-get update -y
+    apt-get install -y mongodb-org || { echo; echo "Échec de l'installation de MongoDB sur cette version d'Ubuntu."; echo "Relance la commande et colle un lien MongoDB Atlas à la question MONGO_URI."; exit 1; }
     # Limite la mémoire de MongoDB (VPS partagé avec d'autres sites)
     grep -q cacheSizeGB /etc/mongod.conf || sed -i 's/^storage:/storage:\n  wiredTiger:\n    engineConfig:\n      cacheSizeGB: 0.5/' /etc/mongod.conf
   fi
