@@ -11,7 +11,7 @@ ask() { # ask "Question" VARIABLE [défaut]
 
 echo "=== Configuration (Entrée = valeur par défaut / ignorer) ==="
 ask "Domaine principal" DOMAINE eglise-connect.com
-ask "MONGO_URI (lien MongoDB Atlas)" MONGO_URI
+ask "MONGO_URI (Entrée = installer MongoDB directement sur ce VPS)" MONGO_URI
 ask "JWT_SECRET (Entrée = en générer un nouveau)" JWT_SECRET
 ask "EMAIL_USER (Gmail d'envoi)" EMAIL_USER
 ask "EMAIL_PASS (mot de passe d'application Gmail)" EMAIL_PASS
@@ -21,7 +21,6 @@ ask "CLOUDINARY_API_SECRET" CLD_SECRET
 ask "STRIPE_SECRET_KEY" STRIPE_KEY sk_test_placeholder
 ask "CAMPAY_TOKEN" CAMPAY_TOKEN
 [ -n "$JWT_SECRET" ] || JWT_SECRET=$(openssl rand -hex 32)
-[ -n "$MONGO_URI" ] || { echo "MONGO_URI est obligatoire."; exit 1; }
 
 echo "=== Installation des paquets ==="
 export DEBIAN_FRONTEND=noninteractive
@@ -32,6 +31,24 @@ if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 20
   apt-get install -y nodejs
 fi
 command -v pm2 >/dev/null || npm i -g pm2
+
+# --- MongoDB local (si aucun lien MONGO_URI n'a été fourni) ---
+if [ -z "$MONGO_URI" ]; then
+  if ! command -v mongod >/dev/null; then
+    echo "=== Installation de MongoDB 8.0 sur le VPS ==="
+    apt-get install -y gnupg lsb-release
+    curl -fsSL https://pgp.mongodb.com/server-8.0.asc | gpg --yes -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
+    apt-get update -y && apt-get install -y mongodb-org
+    # Limite la mémoire de MongoDB (VPS partagé avec d'autres sites)
+    grep -q cacheSizeGB /etc/mongod.conf || sed -i 's/^storage:/storage:\n  wiredTiger:\n    engineConfig:\n      cacheSizeGB: 0.5/' /etc/mongod.conf
+  fi
+  systemctl enable --now mongod
+  sleep 3
+  systemctl is-active --quiet mongod || { echo "MongoDB ne démarre pas : journalctl -u mongod -n 30"; exit 1; }
+  MONGO_URI="mongodb://127.0.0.1:27017/egliseconnect"
+  echo "MongoDB local actif (accessible uniquement depuis le VPS)."
+fi
 # Pare-feu : on n'active rien ; on ajoute seulement les règles si ufw est déjà actif (VPS partagé avec d'autres sites)
 if ufw status | grep -q 'Status: active'; then ufw allow OpenSSH >/dev/null; ufw allow 'Nginx Full' >/dev/null; fi
 
