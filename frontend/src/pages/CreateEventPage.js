@@ -7,6 +7,8 @@ import API_URL from '../config';
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [forParish, setForParish] = useState(true);
   
   const [formData, setFormData] = useState({
     title: '', description: '', date: '', location: '', type: 'Culte'
@@ -41,6 +43,7 @@ export default function CreateEventPage() {
     data.append('date', formData.date);
     data.append('location', formData.location);
     data.append('type', formData.type);
+    if (forParish && user && user.parish) data.append('parishId', user.parish);
     
     // Ajouter chaque fichier
     files.forEach(file => {
@@ -74,6 +77,12 @@ export default function CreateEventPage() {
         <h2 style={{ textAlign:'center', marginBottom:'20px', color:'var(--primary)' }}>Créer un Événement</h2>
         
         <form onSubmit={handleSubmit}>
+          {user && user.parish && (
+            <label style={{ display:'flex', gap:10, alignItems:'center', marginBottom:15 }}>
+              <input type="checkbox" checked={forParish} onChange={e => setForParish(e.target.checked)} style={{ width:'auto', margin:0 }} />
+              Publier pour ma paroisse
+            </label>
+          )}
           
           {/* Upload Zone */}
           <div style={{ marginBottom:'20px', textAlign:'center', border:'2px dashed #ccc', padding:'20px', borderRadius:'10px', background:'#f9f9f9' }}>

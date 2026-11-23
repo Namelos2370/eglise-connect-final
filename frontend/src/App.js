@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { 
   FaNewspaper, FaCalendarAlt, FaUsers, FaComments, FaHandHoldingHeart, 
   FaUserCircle, FaEnvelope, FaBell, FaSignInAlt, FaUserPlus, FaPrayingHands, 
-  FaYoutube, FaBars, FaTimes, FaShieldAlt, FaStore, FaCaretDown // <--- AJOUT FaCaretDown
+  FaYoutube, FaBars, FaTimes, FaShieldAlt, FaStore, FaCaretDown, FaChurch // <--- AJOUT FaCaretDown
 } from 'react-icons/fa';
 
 // --- IMPORTS DES PAGES ---
@@ -31,6 +31,8 @@ import PrayerWallPage from './pages/PrayerWallPage';
 import SermonsPage from './pages/SermonsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import ParishesPage from './pages/ParishesPage';
+import ParishPage from './pages/ParishPage';
 import NotFoundPage from './pages/NotFoundPage';
 import CookieBanner from './components/CookieBanner';
 import AboutPage from './pages/AboutPage';
@@ -104,6 +106,7 @@ const NavigationBar = () => {
         
         {/* --- LIENS PRINCIPAUX (Toujours visibles) --- */}
         <Link to="/feed"><FaNewspaper style={{marginRight:5}}/> Fil</Link>
+        <Link to="/paroisses"><FaChurch style={{marginRight:5}}/> Paroisses</Link>
         <Link to="/market"><FaStore style={{marginRight:5}}/> Marché</Link>
         <Link to="/events"><FaCalendarAlt style={{marginRight:5}}/> Events</Link>
         <Link to="/prayers"><FaPrayingHands style={{marginRight:5}}/> Prières</Link>
@@ -168,6 +171,8 @@ const MainLayout = () => {
             <Route path="/prayers" element={<PrayerWallPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/paroisses" element={<ParishesPage />} />
+            <Route path="/paroisses/:slug" element={<ParishPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />

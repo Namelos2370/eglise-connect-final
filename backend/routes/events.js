@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
+const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware'); // Version Cloudinary
 
@@ -19,7 +20,13 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
     // Cloudinary retourne le chemin direct dans file.path
     const imageUrls = req.files.map(file => file.path);
 
+    let parish;
+    if (req.body.parishId) {
+        const me = await User.findById(req.auth.userId).select('parish');
+        if (me && me.parish && String(me.parish) === String(req.body.parishId)) parish = me.parish;
+    }
     const event = new Event({
+      parish,
       title, description, date, location, type,
       images: imageUrls,
       organizer: req.auth.userId
@@ -33,7 +40,8 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
 // 2. LISTER TOUS (Public)
 router.get('/', async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: 1 }).populate('organizer', 'name photo'); 
+    const q = (req.query.parish && /^[a-f\d]{24}$/i.test(req.query.parish)) ? { parish: req.query.parish } : {};
+    const events = await Event.find(q).sort({ date: 1 }).populate('organizer', 'name photo'); 
     res.status(200).json(events);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });

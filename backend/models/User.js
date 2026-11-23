@@ -10,6 +10,8 @@ const userSchema = mongoose.Schema({
   city: { type: String, default: '' },
   phone: { type: String, default: '' },
   isPublic: { type: Boolean, default: true },
+  // Paroisse (facultatif : vide = communauté générale)
+  parish: { type: mongoose.Schema.Types.ObjectId, ref: 'Parish' },
   
   // 👇 LE CHAMP LE PLUS IMPORTANT POUR TOI MAINTENANT 👇
   role: { type: String, enum: ['user', 'admin'], default: 'user' },

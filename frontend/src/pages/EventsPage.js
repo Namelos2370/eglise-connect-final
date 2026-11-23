@@ -1,3 +1,4 @@
+import ScopeToggle from '../components/ScopeToggle';
 import Seo from '../components/Seo';
 import { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -18,12 +19,14 @@ export default function EventsPage() {
   const [commentText, setCommentText] = useState({});
   const [showComments, setShowComments] = useState({});
 
-  useEffect(() => { fetchEvents(); }, []);
+  const [scope, setScope] = useState('all');
+  const parishId = user && user.parish;
+  useEffect(() => { fetchEvents(); /* eslint-disable-next-line */ }, [scope, parishId]);
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/events`);
+      const res = await fetch(`${API_URL}/events${scope === 'mine' && parishId ? `?parish=${parishId}` : ''}`);
       if (res.ok) setEvents(await res.json());
     } catch (err) { toast.error("Erreur chargement"); }
     setLoading(false);
@@ -53,6 +56,7 @@ export default function EventsPage() {
         <h2 style={{ color:'var(--secondary)', fontSize:'2rem', margin:0 }}><FaCalendarAlt style={{color:'var(--primary)'}} /> Agenda Communautaire</h2>
         <p style={{ color:'#888', margin:'10px 0 20px 0' }}>Ne manquez aucun moment fort.</p>
         
+        {parishId && <ScopeToggle scope={scope} setScope={setScope} />}
         <div style={{ position: 'relative', maxWidth:'500px', margin:'0 auto' }}>
             <FaSearch style={{ position: 'absolute', left: '20px', top: '50%', transform:'translateY(-50%)', color: 'var(--primary)' }} />
             <input type="text" placeholder="Rechercher un événement..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width:'100%', padding:'15px 15px 15px 50px', borderRadius:'50px', border:'1px solid #eee', boxShadow:'0 5px 15px rgba(0,0,0,0.05)', fontSize:'1rem', outline:'none' }} />
