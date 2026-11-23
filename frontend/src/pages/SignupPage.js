@@ -40,17 +40,17 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} noValidate>
           <Honeypot />
           <div style={{ position: 'relative', marginBottom: '20px' }}>
-            <FaUser style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
+            <FaUser style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
             <input type="text" aria-label="Nom complet" autoComplete="name" placeholder="Nom complet" value={name} onChange={e => setName(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
 
           <div style={{ position: 'relative', marginBottom: '20px' }}>
-            <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
+            <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
             <input type="email" aria-label="Email" autoComplete="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '30px' }}>
-            <FaLock style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
+            <FaLock style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
             <input 
                 type={showPassword ? "text" : "password"} aria-label="Mot de passe" autoComplete="new-password" 
                 placeholder="Mot de passe (8 car. min)" 
@@ -62,7 +62,7 @@ export default function SignupPage() {
             <span role="button" tabIndex={0} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 onClick={() => setShowPassword(!showPassword)}
                 onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setShowPassword(!showPassword)}
-                style={{ position: 'absolute', top: '15px', right: '15px', color: '#6b6b6b', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '15px', right: '15px', color: '#aaa', cursor: 'pointer' }}
             >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
