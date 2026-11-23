@@ -48,7 +48,7 @@ export default function PrivateChatPage() {
         <div style={{ display:'flex', alignItems:'center', gap:15 }}>
             <Link to="/inbox" style={{ color:'#555', fontSize:'1.1em' }}><FaArrowLeft /></Link>
             <div onClick={() => setShowSidebar(!showSidebar)} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
-                {partner?.photo ? <img src={partner.photo} alt="Av" style={{ width:35, height:35, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--primary)' }} /> : <FaUserCircle style={{ fontSize:'35px', color:'#ccc' }} />}
+                {partner?.photo ? <img src={partner.photo} alt="Photo de profil" style={{ width:35, height:35, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--primary)' }} /> : <FaUserCircle style={{ fontSize:'35px', color:'#ccc' }} />}
                 <div><h3 style={{ margin:0, fontSize:'1rem', color:'#333' }}>{partner?.name || 'Chargement...'}</h3><div style={{ fontSize:'0.75em', color:'var(--primary)', display:'flex', alignItems:'center', gap:4 }}><FaInfoCircle /> Infos</div></div>
             </div>
         </div>
@@ -57,7 +57,7 @@ export default function PrivateChatPage() {
 
       <div className={`profile-sidebar ${showSidebar ? 'open' : ''}`}>
         <button className="close-sidebar" onClick={() => setShowSidebar(false)}><FaTimes /></button>
-        {partner && (<div className="sidebar-content"><img src={partner.photo || "https://via.placeholder.com/150"} className="sidebar-avatar" alt="Profil" /><h2 className="sidebar-name">{partner.name}</h2><p style={{ color:'#888', fontSize:'0.9em', marginTop:0 }}>{partner.email}</p><div className="sidebar-bio">"{partner.bio || "Aucune bio."}"</div><div className="sidebar-info"><FaMapMarkerAlt style={{color:'var(--primary)'}}/> {partner.city || "Inconnue"}</div><div className="sidebar-info"><FaPhone style={{color:'var(--primary)'}}/> {partner.phone || "Non renseigné"}</div><Link to={`/user/${partner._id}`}><button style={{ marginTop:'20px', width:'100%', borderRadius:'20px' }}>Voir Profil</button></Link></div>)}
+        {partner && (<div className="sidebar-content"><img src={partner.photo || "/avatar.svg"} className="sidebar-avatar" alt="Photo de profil" /><h2 className="sidebar-name">{partner.name}</h2><p style={{ color:'#888', fontSize:'0.9em', marginTop:0 }}>{partner.email}</p><div className="sidebar-bio">"{partner.bio || "Aucune bio."}"</div><div className="sidebar-info"><FaMapMarkerAlt style={{color:'var(--primary)'}}/> {partner.city || "Inconnue"}</div><div className="sidebar-info"><FaPhone style={{color:'var(--primary)'}}/> {partner.phone || "Non renseigné"}</div><Link to={`/user/${partner._id}`}><button style={{ marginTop:'20px', width:'100%', borderRadius:'20px' }}>Voir Profil</button></Link></div>)}
       </div>
 
       <div className="chat-messages" ref={chatContainerRef}>
@@ -66,7 +66,7 @@ export default function PrivateChatPage() {
           const isMenuOpen = openMenuId === msg._id;
           return (
             <div key={msg._id} className={`message-wrapper ${isMe ? 'message-right' : 'message-left'}`}>
-              {!isMe && (msg.sender?.photo ? <img src={msg.sender.photo} className="user-avatar" alt="Av" style={{ width:'35px', height:'35px', borderRadius:'50%', objectFit:'cover', backgroundColor:'white' }} /> : <FaUserCircle className="user-avatar" style={{ fontSize:'35px', color:'#ccc', backgroundColor:'white', borderRadius:'50%' }} />)}
+              {!isMe && (msg.sender?.photo ? <img src={msg.sender.photo} className="user-avatar" alt="Photo de profil" style={{ width:'35px', height:'35px', borderRadius:'50%', objectFit:'cover', backgroundColor:'white' }} /> : <FaUserCircle className="user-avatar" style={{ fontSize:'35px', color:'#ccc', backgroundColor:'white', borderRadius:'50%' }} />)}
               <div className="message-bubble" style={{ position: 'relative', minWidth: '120px' }}>
                 <div className={`message-options-btn ${isMenuOpen ? 'active' : ''}`} onClick={() => setOpenMenuId(isMenuOpen ? null : msg._id)}><FaEllipsisV size={12} /></div>
                 {isMenuOpen && (<div className="message-popup-menu" style={{ right: isMe ? 0 : 'auto', left: isMe ? 'auto' : 0 }}><div onClick={() => handleCopy(msg.content)} className="popup-item"><FaCopy style={{color:'#666'}} /> Copier</div>{isMe && (<><div onClick={() => { setEditingMsgId(msg._id); setEditContent(msg.content); setOpenMenuId(null); }} className="popup-item"><FaPen style={{color:'var(--primary)'}} /> Modifier</div><div onClick={() => handleDeleteMessage(msg._id)} className="popup-item delete"><FaTrash /> Supprimer</div></>)}<div onClick={() => setOpenMenuId(null)} className="popup-item close">Fermer</div></div>)}

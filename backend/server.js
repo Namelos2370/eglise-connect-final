@@ -28,6 +28,14 @@ const app = express();
 // --- MIDDLEWARES ---
 const allowedOrigins = (process.env.CORS_ORIGINS || 'https://eglise-connect.com,https://www.eglise-connect.com,http://localhost:3000')
   .split(',').map(o => o.trim());
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+app.set('trust proxy', 1);
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+// Anti-spam / anti-bruteforce : limites par IP
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 600, standardHeaders: true, legacyHeaders: false }));
+const strict = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: { message: 'Trop de tentatives, réessayez dans quelques minutes.' } });
+app.use(['/auth/login', '/auth/signup', '/auth/forgot-password', '/newsletter/subscribe', '/feedback'], (req, res, next) => req.method === 'POST' ? strict(req, res, next) : next());
 app.use(cors({
   origin: (origin, cb) => (!origin || allowedOrigins.includes(origin)) ? cb(null, true) : cb(new Error('Origine non autorisée')),
 }));

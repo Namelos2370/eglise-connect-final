@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -95,6 +96,7 @@ export default function FeedPage() {
 
   return (
     <div style={{ maxWidth: '700px', margin: '0 auto', paddingBottom:'60px' }}>
+      <Seo title="Fil d'actualité" path="/feed" />
       <ImageModal src={selectedImage} onClose={() => setSelectedImage(null)} />
 
       {/* BARRE DE RECHERCHE */}
@@ -107,7 +109,7 @@ export default function FeedPage() {
       {user ? (
         <div className="card" style={{ padding:'20px', marginBottom:'30px', border:'1px solid #eee', boxShadow:'0 4px 15px rgba(0,0,0,0.05)' }}>
             <div style={{ display: 'flex', gap: '15px', alignItems:'flex-start' }}>
-                <img src={user.photo || 'https://via.placeholder.com/50'} style={{width:50, height:50, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--primary)'}} alt="moi" />
+                <img src={user.photo || '/avatar.svg'} style={{width:50, height:50, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--primary)'}} alt="Votre photo de profil" />
                 <div style={{ flex:1 }}>
                     <textarea 
                         placeholder={`Quoi de neuf, ${user.name.split(' ')[0]} ? Partagez un verset, une pensée...`} 
@@ -154,7 +156,7 @@ export default function FeedPage() {
           <div key={post._id} className="card" style={{ padding: 0, overflow: 'hidden', marginBottom:'20px' }}>
              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                <img src={post.author?.photo || 'https://via.placeholder.com/50'} style={{width:45, height:45, borderRadius:'50%', objectFit:'cover'}} alt="author" />
+                <img src={post.author?.photo || '/avatar.svg'} style={{width:45, height:45, borderRadius:'50%', objectFit:'cover'}} alt="Photo de l'auteur" />
                 <div><strong style={{ display:'block', fontSize:'1rem' }}>{post.author?.name}</strong><small style={{ color: '#999' }}>{new Date(post.createdAt).toLocaleDateString()}</small></div>
               </div>
               {isMyPost && !isEditing && (<div style={{ display:'flex', gap:'5px' }}><button onClick={() => { setEditingPostId(post._id); setEditContent(post.content); }} style={{ padding:'8px', background:'#f3f4f6', color:'#333' }}><FaPen /></button><button onClick={() => handleDelete(post._id)} style={{ padding:'8px', background:'#fee2e2', color:'#dc2626' }}><FaTrash /></button></div>)}
@@ -163,7 +165,7 @@ export default function FeedPage() {
               {isEditing ? (
                 <div><textarea value={editContent} onChange={e => setEditContent(e.target.value)} style={{ width:'100%', minHeight:'80px' }} /><div style={{ display:'flex', gap:'10px', marginTop:'10px' }}><button onClick={() => saveEdit(post._id)} style={{ background:'#10b981' }}>Sauvegarder</button><button onClick={() => setEditingPostId(null)} style={{ background:'#ccc', color:'#333' }}>Annuler</button></div></div>
               ) : (
-                <><p style={{ whiteSpace: 'pre-wrap', fontSize: '1.1rem', lineHeight:'1.5', color:'#333' }}>{post.content}</p>{post.image && (<img src={post.image} alt="Post" style={{ width: '100%', borderRadius: '10px', marginTop:'15px', cursor:'zoom-in' }} onClick={() => setSelectedImage(post.image)} />)}</>
+                <><p style={{ whiteSpace: 'pre-wrap', fontSize: '1.1rem', lineHeight:'1.5', color:'#333' }}>{post.content}</p>{post.image && (<img src={post.image} alt="Image de la publication" style={{ width: '100%', borderRadius: '10px', marginTop:'15px', cursor:'zoom-in' }} onClick={() => setSelectedImage(post.image)} />)}</>
               )}
             </div>
             <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f0f0', display:'flex', justifyContent:'space-between', background:'#fff', alignItems:'center' }}>

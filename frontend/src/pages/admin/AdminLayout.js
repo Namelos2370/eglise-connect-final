@@ -22,7 +22,7 @@ export default function AdminLayout() {
     <div style={layoutStyle}>
       <div style={sidebarStyle}>
         <div style={{ marginBottom:'40px', paddingLeft:'10px', display:'flex', alignItems:'center', gap:10 }}>
-            <img src="/logo.png" alt="Logo" style={{ height:40 }} />
+            <img src="/logo.png" alt="Église Connect" style={{ height:40 }} />
             <h2 style={{ color: 'var(--secondary)', margin:0, fontSize:'1.1rem', textTransform:'uppercase', letterSpacing:'1px' }}>Admin</h2>
         </div>
         

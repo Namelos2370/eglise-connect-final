@@ -2,15 +2,21 @@ import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { FaCommentDots, FaBug, FaLightbulb, FaHeart, FaPaperPlane } from 'react-icons/fa';
-import API_URL from '../config'; 
+import API_URL from '../config';
+import Seo from '../components/Seo';
+import { useAntiSpam } from '../utils/antispam';
 export default function FeedbackPage() {
   const { user } = useContext(AuthContext);
   const [type, setType] = useState('Suggestion');
   const [message, setMessage] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const { looksLikeBot, Honeypot } = useAntiSpam();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (message.trim().length < 5) return toast.error('Votre message est trop court.');
+    if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) return toast.error('Adresse email invalide.');
+    if (looksLikeBot()) { toast.success('Merci !'); setMessage(''); return; }
     const token = localStorage.getItem('token');
     const headers = { 'Content-Type': 'application/json' };
     if(token) headers['Authorization'] = `Bearer ${token}`;
@@ -28,12 +34,14 @@ export default function FeedbackPage() {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+        <Seo title="Donner mon avis" path="/feedback" />
         <div className="card" style={{ padding:'40px', textAlign:'center' }}>
             <h2 style={{ color:'var(--secondary)', display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
                 <FaCommentDots style={{ color:'var(--primary)' }} /> Votre Avis
             </h2>
-            <p style={{ color:'#666', marginBottom:'30px' }}>Aidez-nous à améliorer Église Connect.</p>
-            <form onSubmit={handleSubmit} style={{ textAlign:'left' }}>
+            <p style={{ color:'var(--text-light)', marginBottom:'30px' }}>Aidez-nous à améliorer Église Connect.</p>
+            <form onSubmit={handleSubmit} noValidate style={{ textAlign:'left' }}>
+                <Honeypot />
                 <label style={{fontWeight:'bold', color:'#555'}}>Type</label>
                 <div style={{ display:'flex', gap:10, marginBottom:'20px', marginTop:'5px' }}>
                     {['Suggestion', 'Bug', 'Appréciation'].map(t => (

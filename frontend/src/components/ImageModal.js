@@ -7,7 +7,7 @@ export default function ImageModal({ src, onClose }) {
   return (
     <div className="lightbox-overlay" onClick={onClose}>
       <button className="lightbox-close" onClick={onClose}><FaTimes /></button>
-      <img src={src} alt="Zoom" className="lightbox-img" onClick={(e) => e.stopPropagation()} />
+      <img src={src} alt="Image agrandie" className="lightbox-img" onClick={(e) => e.stopPropagation()} />
     </div>
   );
 }

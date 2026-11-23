@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -25,6 +26,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
+      <Seo title="Connexion" path="/login" />
       <div className="card" style={{ padding: '40px' }}>
         <h2 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '30px' }}>Connexion</h2>
         

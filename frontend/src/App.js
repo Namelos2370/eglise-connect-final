@@ -30,6 +30,9 @@ import NotificationsPage from './pages/NotificationsPage';
 import PrayerWallPage from './pages/PrayerWallPage';
 import SermonsPage from './pages/SermonsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import CookieBanner from './components/CookieBanner';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import FeedbackPage from './pages/FeedbackPage';
@@ -88,7 +91,7 @@ const NavigationBar = () => {
     <nav className="navbar">
       <div className="nav-brand">
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', color:'inherit' }}>
-            <img src="/logo.png" alt="Logo" /> <span>Église Connect</span>
+            <img src="/logo.png" alt="Église Connect" width="40" height="40" /> <span>Église Connect</span>
         </Link>
       </div>
       
@@ -164,6 +167,7 @@ const MainLayout = () => {
             <Route path="/donations" element={<DonationPage />} />
             <Route path="/prayers" element={<PrayerWallPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
@@ -193,12 +197,14 @@ const MainLayout = () => {
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="feedback" element={<FeedbackManager />} />
             </Route>
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
 
       {!isAdminRoute && user && <BottomNav />}
       {!isAdminRoute && <FeedbackButton />}
-      {!isAdminRoute && <div className="desktop-only"><Footer /></div>}
+      {!isAdminRoute && <Footer />}
+      <CookieBanner />
     </>
   );
 };

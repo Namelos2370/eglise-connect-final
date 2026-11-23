@@ -110,7 +110,7 @@ export default function SermonsPage() {
                                   <audio src={previewUrl} controls />
                               </div>
                           ) : (
-                              <img src={previewUrl} alt="Preview" className="preview-media" />
+                              <img src={previewUrl} alt="Aperçu" className="preview-media" />
                           )
                       ) : (
                           <label className="upload-trigger">
@@ -162,8 +162,8 @@ export default function SermonsPage() {
       <div className="stories-grid">
         {filteredMedias.map(media => (
             <div key={media._id} className="story-card">
-                <div className="story-header"><img src={media.author?.photo || "https://via.placeholder.com/40"} className="story-avatar" alt="User" /><span className="story-author">{media.author?.name}</span></div>
-                {media.fileType === 'video' ? (<video src={media.fileUrl} controls className="story-media" playsInline />) : media.fileType === 'audio' ? (<div className="story-audio-bg"><FaMusic style={{ fontSize:'4rem', marginBottom:'20px', opacity:0.8 }} /><audio src={media.fileUrl} controls style={{ width:'80%' }} /></div>) : (<img src={media.fileUrl} alt="Story" className="story-media" />)}
+                <div className="story-header"><img src={media.author?.photo || "/avatar.svg"} className="story-avatar" alt="Photo de l'auteur" /><span className="story-author">{media.author?.name}</span></div>
+                {media.fileType === 'video' ? (<video src={media.fileUrl} controls className="story-media" playsInline />) : media.fileType === 'audio' ? (<div className="story-audio-bg"><FaMusic style={{ fontSize:'4rem', marginBottom:'20px', opacity:0.8 }} /><audio src={media.fileUrl} controls style={{ width:'80%' }} /></div>) : (<img src={media.fileUrl} alt="Média partagé" className="story-media" />)}
                 <div className="story-overlay"><span className="story-category">{media.category}</span><h3 className="story-title">{media.title}</h3>{media.description && <p className="story-desc">{media.description}</p>}</div>
             </div>
         ))}

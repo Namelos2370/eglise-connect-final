@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -45,6 +46,7 @@ export default function EventsPage() {
 
   return (
     <div style={{ padding: '20px', maxWidth:'900px', margin:'0 auto' }}>
+      <Seo title="Événements" path="/events" />
       <ImageModal src={selectedImage} onClose={() => setSelectedImage(null)} />
       
       <div style={{ textAlign:'center', marginBottom:'50px', background:'white', padding:'40px', borderRadius:'20px', boxShadow:'0 5px 20px rgba(0,0,0,0.05)' }}>
@@ -101,7 +103,7 @@ export default function EventsPage() {
                         <div style={{display:'flex', alignItems:'center', gap:10}}>
                              <div style={{display:'flex'}}>
                                 {event.attendees.slice(0,3).map((att, i) => (
-                                    <img key={i} src={att.photo || "https://via.placeholder.com/30"} style={{width:35, height:35, borderRadius:'50%', border:'2px solid white', marginLeft: i>0?-10:0}} alt="att" />
+                                    <img key={i} src={att.photo || "/avatar.svg"} style={{width:35, height:35, borderRadius:'50%', border:'2px solid white', marginLeft: i>0?-10:0}} alt="Participant" />
                                 ))}
                              </div>
                              <span style={{ fontSize: '0.9em', color: '#666' }}>{event.attendees.length} participants</span>
