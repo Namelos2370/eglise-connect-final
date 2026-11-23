@@ -1,3 +1,4 @@
+import ScopeToggle from '../components/ScopeToggle';
 import Seo from '../components/Seo';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -13,6 +14,7 @@ export default function FeedPage() {
   const navigate = useNavigate();
   
   const [posts, setPosts] = useState([]);
+  const [scope, setScope] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   
@@ -26,12 +28,13 @@ export default function FeedPage() {
   const [commentText, setCommentText] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => { fetchPosts(); }, []);
+  const parishId = user && user.parish;
+  useEffect(() => { fetchPosts(); /* eslint-disable-next-line */ }, [scope, parishId]);
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/posts`);
+      const res = await fetch(`${API_URL}/posts${scope === 'mine' && parishId ? `?parish=${parishId}` : ''}`);
       if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) setPosts(data);
@@ -72,6 +75,7 @@ export default function FeedPage() {
     const formData = new FormData(); 
     formData.append('content', newPost); 
     if (file) formData.append('image', file);
+    if (scope === 'mine' && parishId) formData.append('parishId', parishId);
     
     const token = localStorage.getItem('token');
     try {
@@ -98,6 +102,8 @@ export default function FeedPage() {
     <div style={{ maxWidth: '700px', margin: '0 auto', paddingBottom:'60px' }}>
       <Seo title="Fil d'actualité" path="/feed" />
       <ImageModal src={selectedImage} onClose={() => setSelectedImage(null)} />
+
+      {parishId && <ScopeToggle scope={scope} setScope={setScope} />}
 
       {/* BARRE DE RECHERCHE */}
       <div style={{ marginBottom:'20px', position:'relative' }}>

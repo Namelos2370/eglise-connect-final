@@ -21,6 +21,7 @@ const feedbackRoutes = require('./routes/feedback');
 const groupRoutes = require('./routes/groups');
 const serviceRoutes = require('./routes/services');
 const projectRoutes = require('./routes/projects');
+const parishRoutes = require('./routes/parishes');
 const sermonRoutes = require('./routes/sermons');
 
 const app = express();
@@ -49,7 +50,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- CONNEXION BASE DE DONNÉES ---
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .then(async () => { console.log('Connexion à MongoDB réussie !'); try { await parishRoutes.ensurePilotParish(); } catch (e) { console.error('Paroisse pilote:', e.message); } })
   .catch((err) => console.error('Erreur de connexion MongoDB:', err));
 
 // --- ROUTES ---
@@ -70,6 +71,7 @@ app.use('/groups', groupRoutes);
 app.use('/services', serviceRoutes);
 app.use('/projects', projectRoutes);
 app.use('/sermons', sermonRoutes);
+app.use('/parishes', parishRoutes);
 
 app.get('/', (req, res) => {
   res.send('API Église Connect V2.1 en ligne 🚀');

@@ -7,6 +7,7 @@ const eventSchema = mongoose.Schema({
   location: { type: String, required: true },
   type: { type: String, enum: ['Culte', 'Réunion', 'Fête', 'Autre', 'Concert', 'Séminaire'], default: 'Autre' },
   images: [{ type: String }], 
+  parish: { type: mongoose.Schema.Types.ObjectId, ref: 'Parish' },
   organizer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   

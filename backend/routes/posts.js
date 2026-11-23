@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const User = require('../models/User');
 const Group = require('../models/Group'); 
 const Notification = require('../models/Notification');
 const auth = require('../middleware/authMiddleware');
@@ -10,12 +11,13 @@ const cleanContent = require('../middleware/cleanContent');
 // 1. LIRE LE FIL D'ACTUALITÉ PUBLIC (Exclut strictement les groupes)
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find({ 
-        $or: [
+    const query = { $or: [
             { group: { $exists: false } }, // Le champ n'existe pas
             { group: null }                // Le champ est vide
-        ]
-    })
+    ] };
+    // Filtre facultatif : ?parish=<id> (sans paramètre, comportement inchangé)
+    if (req.query.parish && /^[a-f\d]{24}$/i.test(req.query.parish)) query.parish = req.query.parish;
+    const posts = await Post.find(query)
     .sort({ createdAt: -1 })
     .populate('author', 'name photo')
     .populate('comments.author', 'name photo');
@@ -75,7 +77,14 @@ router.post('/', auth, upload.single('image'), cleanContent, async (req, res) =>
     }
 
     const imageUrl = req.file ? req.file.path : null;
+    // Publication au nom de sa paroisse (uniquement si c'est bien la sienne)
+    let parishId;
+    if (req.body.parishId) {
+        const me = await User.findById(req.auth.userId).select('parish');
+        if (me && me.parish && String(me.parish) === String(req.body.parishId)) parishId = me.parish;
+    }
     const newPost = new Post({
+      parish: parishId,
       content: req.body.content || "",
       image: imageUrl,
       author: req.auth.userId,

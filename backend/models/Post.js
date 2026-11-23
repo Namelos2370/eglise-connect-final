@@ -10,6 +10,8 @@ const postSchema = mongoose.Schema({
   // Si ce champ est rempli, le post est PRIVÉ au groupe.
   // S'il est vide, le post est PUBLIC (Fil d'actu).
   group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' }, 
+  // Paroisse (facultatif)
+  parish: { type: mongoose.Schema.Types.ObjectId, ref: 'Parish' },
 
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   
