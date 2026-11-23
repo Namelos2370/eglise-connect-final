@@ -52,7 +52,7 @@ export default function HomePage() {
   return (
     <div>
       <Seo path="/" />
-      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', color: 'white', padding: '60px 20px', borderRadius: '0 0 50% 50% / 20px', textAlign: 'center', marginBottom: '40px', boxShadow: '0 10px 25px -5px rgba(223, 169, 46, 0.4)' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #c6921e 100%)', color: 'white', padding: '60px 20px', borderRadius: '0 0 50% 50% / 20px', textAlign: 'center', marginBottom: '40px', boxShadow: '0 10px 25px -5px rgba(223, 169, 46, 0.4)' }}>
         <h1 style={{ fontSize: '2.8rem', marginBottom: '10px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             {t('home.welcome')} {/* <--- TEXTE TRADUIT */}
         </h1>
