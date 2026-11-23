@@ -107,7 +107,7 @@ export default function PublicProfilePage() {
       <Link to="/members" style={{ textDecoration: 'none', color: '#666', display:'flex', alignItems:'center', gap:5, marginBottom:'20px' }}><FaArrowLeft /> Retour</Link>
 
       <div className="card" style={{ textAlign: 'center', padding:'40px' }}>
-        <img src={profile.photo || "https://via.placeholder.com/150"} alt={profile.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary)', marginBottom: '15px', filter: isPrivate ? 'grayscale(100%)' : 'none' }} />
+        <img src={profile.photo || "/avatar.svg"} alt={profile.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary)', marginBottom: '15px', filter: isPrivate ? 'grayscale(100%)' : 'none' }} />
         <h2 style={{ margin: '0 0 5px 0' }}>{profile.name}</h2>
         
         {isPrivate ? (
@@ -136,7 +136,7 @@ export default function PublicProfilePage() {
                 <div key={post._id} className="card" style={{ padding:'20px', marginTop:'15px' }}>
                     <small style={{ color:'#888' }}>{new Date(post.createdAt).toLocaleDateString()}</small>
                     <p style={{ whiteSpace: 'pre-wrap' }}>{post.content}</p>
-                    {post.image && <img src={post.image} alt="Post" style={{ width: '100%', borderRadius: '10px' }} />}
+                    {post.image && <img src={post.image} alt="Image de la publication" style={{ width: '100%', borderRadius: '10px' }} />}
                     <div style={{ marginTop:'10px', display:'flex', gap:'15px', color:'#666' }}>
                         <span><FaHeart /> {post.likes.length}</span>
                         <span><FaComment /> {post.comments.length}</span>

@@ -84,7 +84,7 @@ export default function EditEventPage() {
         <form onSubmit={handleSubmit}>
             <div style={{ display:'flex', gap:'10px', overflowX:'auto', marginBottom:'15px' }}>
                 {currentImages.map((img, idx) => (
-                    <img key={idx} src={img} alt="Actuelle" style={{ width:'60px', height:'60px', borderRadius:'5px', objectFit:'cover' }} />
+                    <img key={idx} src={img} alt="Image actuelle de l'événement" style={{ width:'60px', height:'60px', borderRadius:'5px', objectFit:'cover' }} />
                 ))}
             </div>
 

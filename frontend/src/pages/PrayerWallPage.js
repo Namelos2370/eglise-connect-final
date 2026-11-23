@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -46,6 +47,7 @@ export default function PrayerWallPage() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', paddingBottom:'80px' }}>
+      <Seo title="Mur de prières" path="/prayers" />
       
       <div style={{ textAlign:'center', marginBottom:'40px', background:'linear-gradient(135deg, #fff8e1 0%, #fff 100%)', padding:'40px', borderRadius:'20px', boxShadow:'0 5px 20px rgba(0,0,0,0.05)' }}>
         <FaPrayingHands style={{ fontSize:'3rem', color:'var(--primary)', marginBottom:'15px' }} />
@@ -78,7 +80,7 @@ export default function PrayerWallPage() {
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'15px', alignItems:'center' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                             <div style={{ width:40, height:40, borderRadius:'50%', background: prayer.isAnonymous ? '#eee' : 'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', color:'white' }}>
-                                {prayer.isAnonymous ? <FaLock /> : (prayer.author?.photo ? <img src={prayer.author.photo} style={{width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover'}} alt=""/> : <FaUser />)}
+                                {prayer.isAnonymous ? <FaLock /> : (prayer.author?.photo ? <img src={prayer.author.photo} style={{width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover'}} alt="Photo de profil"/> : <FaUser />)}
                             </div>
                             <div>
                                 <strong style={{ display:'block', color: '#333' }}>{prayer.isAnonymous ? "Un membre" : prayer.author?.name}</strong>

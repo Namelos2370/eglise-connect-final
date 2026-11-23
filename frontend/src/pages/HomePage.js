@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import API_URL from '../config';
+import Seo from '../components/Seo';
+import { toast } from 'react-toastify';
+import { useAntiSpam } from '../utils/antispam';
 import { useTranslation } from 'react-i18next'; // <--- IMPORT CRUCIAL
 import { 
   FaCalendarAlt, FaComments, FaHandHoldingHeart, FaBible, 
@@ -13,6 +16,7 @@ export default function HomePage() {
   const { user } = useContext(AuthContext);
   const { t } = useTranslation(); // <--- HOOK DE TRADUCTION
   const [verse, setVerse] = useState(null);
+  const { looksLikeBot, Honeypot } = useAntiSpam();
 
   useEffect(() => {
     // (La logique du verset reste la même pour l'instant)
@@ -30,31 +34,40 @@ export default function HomePage() {
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
-    const email = e.target.elements.email.value;
+    const form = e.target;
+    const email = form.elements.email.value.trim();
+    if (looksLikeBot()) { toast.success("Merci ! Vous êtes inscrit(e)."); form.reset(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error("Adresse email invalide."); return; }
     try {
         const res = await fetch(`${API_URL}/newsletter/subscribe`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
-        const data = await res.json();
-        if(res.ok) alert("OK"); 
-        else alert(data.message);
-    } catch(err) { alert("Erreur"); }
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) { toast.success("Merci ! Vous êtes bien inscrit(e) à la newsletter."); form.reset(); }
+        else toast.error(data.message || "Inscription impossible pour le moment.");
+    } catch (err) { toast.error("Serveur injoignable, réessayez plus tard."); }
   };
 
   return (
     <div>
-      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #c6921e 100%)', color: 'white', padding: '60px 20px', borderRadius: '0 0 50% 50% / 20px', textAlign: 'center', marginBottom: '40px', boxShadow: '0 10px 25px -5px rgba(223, 169, 46, 0.4)' }}>
+      <Seo path="/" />
+      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', color: 'white', padding: '60px 20px', borderRadius: '0 0 50% 50% / 20px', textAlign: 'center', marginBottom: '40px', boxShadow: '0 10px 25px -5px rgba(223, 169, 46, 0.4)' }}>
         <h1 style={{ fontSize: '2.8rem', marginBottom: '10px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             {t('home.welcome')} {/* <--- TEXTE TRADUIT */}
         </h1>
         <div style={{ fontSize: '1.3rem', opacity: 0.95, fontWeight:'500', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}>
           {user ? <><FaPrayingHands /> {t('home.subtitle', { name: user.name })}</> : t('home.guest_subtitle')}
         </div>
-        {!user && (
-          <div style={{ marginTop: '25px', display:'flex', justifyContent:'center', gap:'15px' }}>
-            <Link to="/login" style={{textDecoration:'none'}}><button style={{ background: 'white', color: 'var(--primary)', display:'flex', alignItems:'center', gap:'8px' }}><FaSignInAlt /> {t('home.login')}</button></Link>
-            <Link to="/signup" style={{textDecoration:'none'}}><button style={{ background: 'rgba(255,255,255,0.2)', border:'1px solid white', display:'flex', alignItems:'center', gap:'8px' }}><FaUserPlus /> {t('home.signup')}</button></Link>
+        {!user ? (
+          <div style={{ marginTop: '25px', display:'flex', flexDirection:'column', alignItems:'center', gap:'12px', padding:'0 10px' }}>
+            <p style={{ margin:0, maxWidth:520, opacity:0.95 }}>Prières, événements, prédications et messagerie : rejoignez gratuitement votre communauté chrétienne en ligne.</p>
+            <Link to="/signup" style={{textDecoration:'none'}}><button className="hero-cta"><FaUserPlus /> Rejoindre gratuitement</button></Link>
+            <Link to="/login" style={{ color:'white', fontWeight:600 }}>Déjà membre ? Se connecter</Link>
+          </div>
+        ) : (
+          <div style={{ marginTop: '25px' }}>
+            <Link to="/feed" style={{textDecoration:'none'}}><button className="hero-cta"><FaComments /> Accéder à mon fil</button></Link>
           </div>
         )}
       </div>
@@ -70,13 +83,6 @@ export default function HomePage() {
             </div>
         )}
 
-        {/* STATS TRADUITES */}
-        <div style={{ display:'flex', justifyContent:'space-around', flexWrap:'wrap', gap:'20px', marginBottom:'50px', textAlign:'center' }}>
-            <div><div style={{ fontSize:'2.5rem', color:'var(--primary)', fontWeight:'bold' }}>1,250+</div><div style={{ color:'#666' }}><FaUsers /> {t('home.stats_members')}</div></div>
-            <div><div style={{ fontSize:'2.5rem', color:'var(--primary)', fontWeight:'bold' }}>540+</div><div style={{ color:'#666' }}><FaPrayingHands /> {t('home.stats_prayers')}</div></div>
-            <div><div style={{ fontSize:'2.5rem', color:'var(--primary)', fontWeight:'bold' }}>12</div><div style={{ color:'#666' }}><FaGlobeAfrica /> {t('home.stats_countries')}</div></div>
-        </div>
-
         {/* MENU ACCÈS RAPIDE */}
         <h3 style={{ textAlign: 'center', color: 'var(--secondary)', marginBottom: '30px', textTransform:'uppercase', fontSize:'1rem', letterSpacing:'2px', borderBottom:'1px solid #eee', paddingBottom:'10px', display:'inline-block', width:'100%' }}>
             {t('home.life')}
@@ -91,12 +97,20 @@ export default function HomePage() {
             <Link to="/inbox" style={linkStyle}><div style={cardStyle}><div style={iconStyle}><FaEnvelope /></div><h3>{t('menu.inbox')}</h3></div></Link>
         </div>
 
+        {!user && (
+          <div style={{ textAlign:'center', marginBottom:'40px' }}>
+            <h2 style={{ color:'var(--secondary)' }}>Prêt à rejoindre la famille ?</h2>
+            <Link to="/signup" style={{textDecoration:'none'}}><button className="btn-magic"><FaUserPlus /> Créer mon compte</button></Link>
+          </div>
+        )}
+
         {/* NEWSLETTER TRADUITE */}
         <div style={{ background:'var(--secondary)', color:'white', padding:'40px 20px', borderRadius:'20px', textAlign:'center', marginTop:'60px', marginBottom:'40px' }}>
             <h2 style={{ color:'var(--primary)', marginBottom:'10px' }}>{t('home.newsletter_title')}</h2>
             <p style={{ opacity:0.8, marginBottom:'20px' }}>{t('home.newsletter_desc')}</p>
             <form onSubmit={handleSubscribe} style={{ display:'flex', maxWidth:'500px', margin:'0 auto', background:'white', padding:'5px', borderRadius:'30px' }}>
-                <input name="email" type="email" placeholder="Email..." style={{ flex:1, border:'none', background:'transparent', margin:0, padding:'10px 20px', borderRadius:'30px' }} required />
+                <Honeypot />
+                <input name="email" type="email" aria-label="Votre adresse email" placeholder="Votre email" autoComplete="email" style={{ flex:1, border:'none', background:'transparent', margin:0, padding:'10px 20px', borderRadius:'30px' }} required />
                 <button type="submit" style={{ borderRadius:'25px', padding:'10px 25px', width:'auto', margin:0 }}>{t('home.subscribe')}</button>
             </form>
         </div>

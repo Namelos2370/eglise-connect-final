@@ -72,7 +72,7 @@ export default function ProfilePage() {
 
       <div className="profile-main-card">
         <div className="profile-avatar-wrapper">
-            <img src={user.photo || "https://via.placeholder.com/150"} className="profile-avatar-img" alt="Profil" />
+            <img src={user.photo || "/avatar.svg"} className="profile-avatar-img" alt="Photo de profil" />
             {isEditing && (
                 <label className="camera-btn">{uploading ? <FaSpinner className="fa-spin" /> : <FaCamera size={14} />}<input type="file" onChange={handleAvatarUpload} style={{display:'none'}} accept="image/*" /></label>
             )}
@@ -129,7 +129,7 @@ export default function ProfilePage() {
                         <button onClick={() => handleDeletePost(post._id)} style={{ background:'transparent', color:'#dc2626', padding:0, width:'auto', boxShadow:'none' }}><FaTrash /></button>
                     </div>
                     <p>{post.content}</p>
-                    {post.image && <img src={post.image} alt="Post" style={{ width: '100%', borderRadius: '10px', marginTop:'10px' }} />}
+                    {post.image && <img src={post.image} alt="Image de la publication" style={{ width: '100%', borderRadius: '10px', marginTop:'10px' }} />}
                     <div style={{ marginTop:'10px', color:'#888', fontSize:'0.9em' }}><FaHeart /> {post.likes.length} · <FaComment /> {post.comments.length}</div>
                 </div>
             ))}

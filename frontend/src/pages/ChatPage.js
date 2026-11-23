@@ -52,7 +52,7 @@ export default function ChatPage() {
           const isMe = msg.sender?._id === user?._id;
           return (
             <div key={msg._id} className={`message-wrapper ${isMe ? 'message-right' : 'message-left'}`}>
-              {!isMe && (msg.sender?.photo ? <img src={msg.sender.photo} className="user-avatar" alt="Av" style={{ width:35, height:35, borderRadius:'50%', objectFit:'cover' }} /> : <FaUserCircle className="user-avatar" style={{ fontSize:'35px', color:'#ccc', background:'white', borderRadius:'50%' }} />)}
+              {!isMe && (msg.sender?.photo ? <img src={msg.sender.photo} className="user-avatar" alt="Photo de profil" style={{ width:35, height:35, borderRadius:'50%', objectFit:'cover' }} /> : <FaUserCircle className="user-avatar" style={{ fontSize:'35px', color:'#ccc', background:'white', borderRadius:'50%' }} />)}
               <div className="message-bubble">
                 {!isMe && <div style={{ fontSize:'0.75em', fontWeight:'bold', color:'var(--primary)', marginBottom:2 }}>{msg.sender?.name}</div>}
                 {msg.content}

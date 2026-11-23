@@ -2,19 +2,28 @@ import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Seo from '../components/Seo';
+import { useAntiSpam } from '../utils/antispam';
 import { FaUser, FaEnvelope, FaLock, FaUserPlus, FaSignInAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // État voir/cacher
+  const [showPassword, setShowPassword] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const { looksLikeBot, Honeypot } = useAntiSpam();
 
   const { signup } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (name.trim().length < 2) return toast.error('Veuillez saisir votre nom complet.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error('Adresse email invalide.');
+    if (password.length < 8) return toast.error('Le mot de passe doit contenir au moins 8 caractères.');
+    if (!accepted) return toast.error("Veuillez accepter les CGU et la politique de confidentialité.");
+    if (looksLikeBot()) return toast.error('Veuillez réessayer dans un instant.');
     try {
       await signup(name, email, password);
       toast.success('Bienvenue ! 🎉');
@@ -27,35 +36,42 @@ export default function SignupPage() {
       <div className="card" style={{ padding: '40px' }}>
         <h2 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '30px' }}>Rejoindre</h2>
         
-        <form onSubmit={handleSubmit}>
+        <Seo title="Rejoindre la communauté" description="Créez gratuitement votre compte Église Connect et rejoignez la communauté chrétienne en ligne." path="/signup" />
+        <form onSubmit={handleSubmit} noValidate>
+          <Honeypot />
           <div style={{ position: 'relative', marginBottom: '20px' }}>
-            <FaUser style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input type="text" placeholder="Nom complet" value={name} onChange={e => setName(e.target.value)} required style={{ paddingLeft: '45px' }} />
+            <FaUser style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
+            <input type="text" aria-label="Nom complet" autoComplete="name" placeholder="Nom complet" value={name} onChange={e => setName(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
 
           <div style={{ position: 'relative', marginBottom: '20px' }}>
-            <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
+            <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
+            <input type="email" aria-label="Email" autoComplete="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '30px' }}>
-            <FaLock style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
+            <FaLock style={{ position: 'absolute', top: '15px', left: '15px', color: '#767676' }} />
             <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Mot de passe (6 car. min)" 
+                type={showPassword ? "text" : "password"} aria-label="Mot de passe" autoComplete="new-password" 
+                placeholder="Mot de passe (8 car. min)" 
                 value={password} 
                 onChange={e => setPassword(e.target.value)} 
-                required minLength="6"
+                required minLength="8"
                 style={{ paddingLeft: '45px', paddingRight: '40px' }}
             />
-            <span 
+            <span role="button" tabIndex={0} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', top: '15px', right: '15px', color: '#aaa', cursor: 'pointer' }}
+                onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setShowPassword(!showPassword)}
+                style={{ position: 'absolute', top: '15px', right: '15px', color: '#6b6b6b', cursor: 'pointer' }}
             >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
+          <label style={{ display:'flex', gap:10, alignItems:'flex-start', fontSize:'0.85em', marginBottom:20, color:'var(--text-light)' }}>
+            <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} style={{ width:'auto', margin:'3px 0 0' }} />
+            <span>J'accepte les <Link to="/terms" style={{ color:'var(--primary)' }}>conditions d'utilisation</Link> et la <Link to="/privacy" style={{ color:'var(--primary)' }}>politique de confidentialité</Link>.</span>
+          </label>
           <button type="submit" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1em' }}>
             <FaUserPlus /> S'inscrire
           </button>

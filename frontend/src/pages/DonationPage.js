@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useState } from 'react'; // Import du Hook d'état
 import { toast } from 'react-toastify';
 import { FaPaypal, FaHandHoldingHeart, FaLock, FaCheckCircle, FaGlobe, FaMobileAlt, FaCopy, FaTimes } from 'react-icons/fa';
@@ -24,6 +25,7 @@ export default function DonationPage() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', paddingBottom:'80px' }}>
+      <Seo title="Dons" path="/donations" />
       
       {/* HEADER */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>

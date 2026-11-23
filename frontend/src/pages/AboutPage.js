@@ -1,9 +1,11 @@
+import Seo from '../components/Seo';
 import React from 'react';
 import { FaChurch, FaHeart, FaGlobe } from 'react-icons/fa';
 
 export default function AboutPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <Seo title="À propos" path="/about" />
       
       <div style={{ textAlign:'center', marginBottom:'40px' }}>
         <h1 style={{ fontSize:'2.5rem', color:'var(--primary)', marginBottom:'10px' }}>Notre Vision</h1>

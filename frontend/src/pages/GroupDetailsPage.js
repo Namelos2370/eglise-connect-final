@@ -113,7 +113,7 @@ export default function GroupDetailsPage() {
       return (
         <div style={{ maxWidth:'600px', margin:'50px auto', textAlign:'center', padding:'20px' }}>
             <div className="card" style={{ padding:'40px', borderTop:'5px solid var(--primary)' }}>
-                {group.photo ? <img src={group.photo} style={{width:100, height:100, borderRadius:'50%', objectFit:'cover'}} alt="g"/> : <FaUsers size={80} color="#ccc"/>}
+                {group.photo ? <img src={group.photo} style={{width:100, height:100, borderRadius:'50%', objectFit:'cover'}} alt="Photo du groupe"/> : <FaUsers size={80} color="#ccc"/>}
                 <h1>{group.name}</h1>
                 <p style={{color:'#666'}}>{group.description}</p>
                 <p><strong>{group.members.length}</strong> membres participent.</p>
@@ -133,7 +133,7 @@ export default function GroupDetailsPage() {
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <Link to="/groups" style={{ color:'#555' }}><FaArrowLeft /></Link>
             <div onClick={() => setShowInfo(true)} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
-                {group.photo ? <img src={group.photo} style={{width:40, height:40, borderRadius:'50%', objectFit:'cover'}} alt="g"/> : <div style={{width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', color:'white'}}><FaUsers/></div>}
+                {group.photo ? <img src={group.photo} style={{width:40, height:40, borderRadius:'50%', objectFit:'cover'}} alt="Photo du groupe"/> : <div style={{width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', color:'white'}}><FaUsers/></div>}
                 <div>
                     <h3 style={{ margin:0, fontSize:'1rem', color:'#333' }}>{group.name}</h3>
                     <div style={{ fontSize:'0.75em', color:'var(--primary)' }}>{group.members.length} membres • Appuyer pour infos</div>
@@ -154,7 +154,7 @@ export default function GroupDetailsPage() {
             <div style={{ textAlign:'left', maxHeight:'300px', overflowY:'auto' }}>
                 {group.members.map(m => (
                     <Link key={m._id} to={`/user/${m._id}`} style={{display:'flex', alignItems:'center', gap:10, padding:10, textDecoration:'none', color:'#333', borderBottom:'1px solid #eee'}}>
-                         <img src={m.photo || "https://via.placeholder.com/30"} style={{width:30, height:30, borderRadius:'50%'}} alt="m"/>
+                         <img src={m.photo || "/avatar.svg"} style={{width:30, height:30, borderRadius:'50%'}} alt="Photo du membre"/>
                          <span>{m.name}</span>
                     </Link>
                 ))}
@@ -171,14 +171,14 @@ export default function GroupDetailsPage() {
 
           return (
             <div key={msg._id} className={`message-wrapper ${isMe ? 'message-right' : 'message-left'}`}>
-              {!isMe && <img src={msg.author?.photo || "https://via.placeholder.com/30"} className="user-avatar" style={{width:30, height:30, borderRadius:'50%'}} alt="av"/>}
+              {!isMe && <img src={msg.author?.photo || "/avatar.svg"} className="user-avatar" style={{width:30, height:30, borderRadius:'50%'}} alt="Photo de profil"/>}
               
               <div className="message-bubble" style={{position:'relative', minWidth:'100px'}}>
                  {/* Nom de l'auteur (si ce n'est pas moi) */}
                  {!isMe && <div style={{fontSize:'0.75em', fontWeight:'bold', color:'var(--primary)', marginBottom:2}}>{msg.author?.name}</div>}
                  
                  {/* Contenu (Texte + Image) */}
-                 {msg.image && <img src={msg.image} alt="img" style={{width:'100%', borderRadius:10, marginBottom:5, cursor:'zoom-in'}} onClick={() => setSelectedImage(msg.image)} />}
+                 {msg.image && <img src={msg.image} alt="Image partagée dans la discussion" style={{width:'100%', borderRadius:10, marginBottom:5, cursor:'zoom-in'}} onClick={() => setSelectedImage(msg.image)} />}
                  <div>{msg.content}</div>
                  
                  {/* Heure */}

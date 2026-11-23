@@ -1,3 +1,4 @@
+import Seo from '../components/Seo';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -68,6 +69,7 @@ export default function MarketplacePage() {
 
   return (
     <div style={{ maxWidth:'1000px', margin:'0 auto', padding:'20px' }}>
+      <Seo title="Marché des services" path="/market" />
         
         {/* HEADER PREMIUM */}
         <div style={{ textAlign:'center', marginBottom:'40px', background:'linear-gradient(135deg, #fff 0%, #f9f9f9 100%)', padding:'40px', borderRadius:'20px', boxShadow:'0 10px 30px rgba(0,0,0,0.03)' }}>
@@ -144,7 +146,7 @@ export default function MarketplacePage() {
                     {/* FOOTER CARTE */}
                     <div style={{ padding:'15px 20px', background:'#fafafa', borderTop:'1px solid #eee', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <img src={service.author.photo || "https://via.placeholder.com/40"} style={{width:35, height:35, borderRadius:'50%', objectFit:'cover', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.1)'}} alt="aut"/>
+                            <img src={service.author.photo || "/avatar.svg"} style={{width:35, height:35, borderRadius:'50%', objectFit:'cover', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.1)'}} alt="Photo de l'auteur"/>
                             <div style={{fontSize:'0.85em'}}>
                                 <div style={{fontWeight:'bold'}}>{service.author.name}</div>
                                 <div style={{color:'#888'}}>{service.author.city || 'Local'}</div>
