@@ -88,6 +88,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    try { if (window.caches) caches.keys().then((ks) => ks.filter((k) => k.startsWith('ec-api-')).forEach((k) => caches.delete(k))); } catch (e) {}
     setUser(null);
     window.location.href = '/login';
   };

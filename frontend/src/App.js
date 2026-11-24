@@ -35,6 +35,7 @@ import ParishesPage from './pages/ParishesPage';
 import ParishPage from './pages/ParishPage';
 import NotFoundPage from './pages/NotFoundPage';
 import CookieBanner from './components/CookieBanner';
+import OfflineBanner from './components/OfflineBanner';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import FeedbackPage from './pages/FeedbackPage';
@@ -230,6 +231,7 @@ const MainLayout = () => {
       {!isAdminRoute && <FeedbackButton />}
       {!isAdminRoute && <Footer />}
       <CookieBanner />
+      <OfflineBanner />
     </>
   );
 };
