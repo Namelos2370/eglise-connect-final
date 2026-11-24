@@ -56,7 +56,7 @@ export default function SermonsPage() {
           closeCreator();
           fetchMedias(); 
       } 
-      else toast.error("Erreur lors de l'envoi.");
+      else { const d = await res.json().catch(() => ({})); toast.error(d.message || d.error || "Erreur lors de l'envoi."); }
     } catch (err) { toast.error("Erreur serveur"); }
     setUploading(false);
   };
