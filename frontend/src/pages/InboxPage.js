@@ -71,7 +71,7 @@ export default function InboxPage() {
             <h2 style={{ margin: 0, color:'var(--secondary)', fontSize:'1.8rem' }}>Mes Échanges</h2>
             <p style={{ margin:'5px 0 0 0', color:'#888', fontSize:'0.9rem' }}>Restez connecté avec la communauté</p>
         </div>
-        <Link to="/members">
+        <Link to="/members" style={{ textDecoration:'none' }}>
             <button style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 20px', borderRadius:'30px', boxShadow:'0 4px 10px rgba(223, 169, 46, 0.3)' }}>
                 <FaPlus /> <span style={{fontSize:'0.9em'}}>Nouveau</span>
             </button>
