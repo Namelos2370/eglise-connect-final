@@ -320,3 +320,7 @@ input.creator-input, textarea.creator-input, input.creator-input:focus, textarea
 input.creator-input:focus, textarea.creator-input:focus { border-bottom-color: var(--gold); }
 .creator-input::placeholder { color: #9a9a9a; -webkit-text-fill-color: #9a9a9a; }
 select.creator-select { background-color: #333; color: #fff; border: none; width: auto; margin: 0; }
+
+/* Champ « Choisir un fichier » : taille raisonnable, nom de fichier tronqué */
+input[type="file"] { font-size: 0.85rem !important; width: 100%; max-width: 100%; box-sizing: border-box; margin: 8px 0 20px; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; }
+input[type="file"]::file-selector-button { font-family: inherit; font-weight: bold; font-size: 0.85rem; padding: 8px 14px; border: none; border-radius: 20px; background: #f0e6d2; color: #5a4300; margin-right: 10px; cursor: pointer; }

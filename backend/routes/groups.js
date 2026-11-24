@@ -1,134 +1,75 @@
 const express = require('express');
 const router = express.Router();
-const Post = require('../models/Post');
-const Group = require('../models/Group'); // <--- IMPORTANT : On importe le modèle Groupe
-const Notification = require('../models/Notification');
+const Group = require('../models/Group');
+const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
-const cleanContent = require('../middleware/cleanContent');
 
-// 1. LIRE LE FIL D'ACTUALITÉ PUBLIC (Exclut les groupes)
-router.get('/', async (req, res) => {
+const isIn = (list, id) => (list || []).some(m => String(m._id || m) === String(id));
+
+// 1. LISTER TOUS LES GROUPES
+router.get('/', auth, async (req, res) => {
   try {
-    const posts = await Post.find({ 
-        $or: [{ group: { $exists: false } }, { group: null }] 
-    })
-    .sort({ createdAt: -1 })
-    .populate('author', 'name photo')
-    .populate('comments.author', 'name photo');
-    res.status(200).json(posts);
+    const groups = await Group.find().populate('leader', 'name photo').sort({ name: 1 });
+    res.status(200).json(groups);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 2. LIRE LES MESSAGES D'UN GROUPE (SÉCURISÉ WHATSAPP STYLE)
-router.get('/group/:groupId', auth, async (req, res) => {
+// 2. CRÉER UN GROUPE
+router.post('/', auth, upload.single('photo'), async (req, res) => {
   try {
-    // A. VÉRIFICATION DE SÉCURITÉ
-    const group = await Group.findById(req.params.groupId);
-    if (!group) return res.status(404).json({ message: "Groupe introuvable" });
-
-    // On vérifie si l'utilisateur qui demande est bien membre du groupe
-    if (!group.members.includes(req.auth.userId)) {
-        return res.status(403).json({ message: "Accès refusé. Vous n'êtes pas membre de ce groupe." });
-    }
-
-    // B. RÉCUPÉRATION DES MESSAGES (Tout l'historique)
-    const posts = await Post.find({ group: req.params.groupId })
-      .sort({ createdAt: -1 }) // Du plus récent au plus vieux
-      .populate('author', 'name photo')
-      .populate('comments.author', 'name photo');
-      
-    res.status(200).json(posts);
-  } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-// 3. LIRE POSTS D'UN UTILISATEUR (Profil public uniquement)
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const posts = await Post.find({ 
-        author: req.params.userId,
-        $or: [{ group: { $exists: false } }, { group: null }] // On ne montre pas les secrets de groupe sur le profil
-    })
-    .sort({ createdAt: -1 })
-    .populate('author', 'name photo')
-    .populate('comments.author', 'name photo');
-    res.status(200).json(posts);
-  } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-// 4. PUBLIER (Public ou Groupe)
-router.post('/', auth, upload.single('image'), cleanContent, async (req, res) => {
-  try {
-    if (!req.body.content && !req.file) return res.status(400).json({ error: "Message vide" });
-
-    // Si c'est pour un groupe, on vérifie qu'on est membre (Double sécurité)
-    if (req.body.groupId) {
-        const group = await Group.findById(req.body.groupId);
-        if (!group || !group.members.includes(req.auth.userId)) {
-            return res.status(403).json({ error: "Vous ne pouvez pas publier dans ce groupe." });
-        }
-    }
-
-    const imageUrl = req.file ? req.file.path : null;
-    const newPost = new Post({
-      content: req.body.content || "",
-      image: imageUrl,
-      author: req.auth.userId,
-      group: req.body.groupId || undefined
+    const name = String(req.body.name || '').trim();
+    const description = String(req.body.description || '').trim();
+    if (name.length < 2) return res.status(400).json({ message: 'Le nom du groupe est requis.' });
+    const group = await Group.create({
+      name: name.slice(0, 100),
+      description: description.slice(0, 1000),
+      photo: req.file ? req.file.path : '',
+      leader: req.auth.userId,
+      members: [req.auth.userId], // Le créateur est automatiquement membre
+      isPrivate: req.body.isPrivate === 'true'
     });
-
-    await newPost.save();
-    const populatedPost = await newPost.populate('author', 'name photo');
-    res.status(201).json(populatedPost);
-  } catch (error) { res.status(400).json({ error: error.message }); }
+    res.status(201).json({ message: 'Groupe créé !', group });
+  } catch (error) { res.status(400).json({ error: error.message, message: error.message }); }
 });
 
-// 5. LIKE
-router.post('/:id/like', auth, async (req, res) => {
+// 3. REJOINDRE / QUITTER UN GROUPE
+router.post('/:id/join', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const group = await Group.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Groupe introuvable' });
     const userId = req.auth.userId;
-    if (post.likes.includes(userId)) post.likes = post.likes.filter(id => id.toString() !== userId);
-    else {
-        post.likes.push(userId);
-        // Pas de notif si c'est son propre post
-        if (post.author.toString() !== userId) {
-            await Notification.create({ recipient: post.author, sender: userId, type: 'like', postId: post._id });
-        }
+    if (isIn(group.members, userId)) {
+      if (String(group.leader) === String(userId)) return res.status(400).json({ message: 'Le responsable ne peut pas quitter son groupe.' });
+      group.members = group.members.filter(id => String(id) !== String(userId));
+    } else {
+      group.members.push(userId);
     }
-    await post.save();
-    res.status(200).json(post);
+    await group.save();
+    res.status(200).json({ message: 'Mise à jour effectuée', members: group.members });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 6. COMMENTER
-router.post('/:id/comment', auth, cleanContent, async (req, res) => {
+// 4. DÉTAILS D'UN GROUPE (avec ses membres)
+router.get('/:id', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    post.comments.push({ text: req.body.text, author: req.auth.userId });
-    await post.save();
-    const updatedPost = await Post.findById(req.params.id).populate('author', 'name photo').populate('comments.author', 'name photo');
-    res.status(200).json(updatedPost);
+    const group = await Group.findById(req.params.id)
+      .populate('leader', 'name photo')
+      .populate('members', 'name photo bio');
+    if (!group) return res.status(404).json({ message: 'Groupe introuvable' });
+    res.status(200).json(group);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 7. MODIFIER / SUPPRIMER (Classique)
-router.put('/:id', auth, cleanContent, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (post.author.toString() !== req.auth.userId) return res.status(403).json({ message: "Interdit" });
-    post.content = req.body.content;
-    await post.save();
-    res.status(200).json(post);
-  } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
+// 5. SUPPRIMER (responsable du groupe ou admin)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    if (post.author.toString() !== req.auth.userId) return res.status(403).json({ message: "Interdit" });
-    await Post.deleteOne({ _id: req.params.id });
-    res.status(200).json({ message: "Supprimé" });
+    const group = await Group.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Groupe introuvable' });
+    const me = await User.findById(req.auth.userId).select('role');
+    if (String(group.leader) !== String(req.auth.userId) && !(me && me.role === 'admin')) return res.status(403).json({ message: 'Accès refusé' });
+    await group.deleteOne();
+    res.status(200).json({ message: 'Groupe supprimé' });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
