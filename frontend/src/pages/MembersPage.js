@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -17,7 +18,7 @@ export default function MembersPage() {
     const fetchMembers = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch('https://eglise-api-final.onrender.com2/users', {
+        const res = await fetch(`${API_URL}/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setMembers(await res.json());

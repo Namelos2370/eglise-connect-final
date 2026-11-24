@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -10,7 +11,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://eglise-api-final.onrender.com/auth/reset-password/${token}`, {
+      const res = await fetch(`${API_URL}/auth/reset-password/${token}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
