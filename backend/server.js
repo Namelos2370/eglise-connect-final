@@ -79,6 +79,15 @@ app.get('/', (req, res) => {
 
 // --- DÉMARRAGE ---
 const PORT = process.env.PORT || 3002;
+// Gestionnaire d'erreurs global (uploads, etc.) : message clair + log serveur
+app.use((err, req, res, next) => {
+  console.error('Erreur', req.method, req.originalUrl, '-', err && (err.message || err));
+  const msg = err && err.code === 'LIMIT_FILE_SIZE' ? 'Fichier trop volumineux (100 Mo max).'
+    : (err && err.http_code === 401 || /api_key|Invalid cloud_name|Must supply/i.test(String(err && err.message))) ? "Service d'envoi de fichiers non configuré."
+    : (err && err.message) || 'Erreur serveur';
+  res.status(err && err.code === 'LIMIT_FILE_SIZE' ? 413 : 500).json({ message: msg, error: msg });
+});
+
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });
