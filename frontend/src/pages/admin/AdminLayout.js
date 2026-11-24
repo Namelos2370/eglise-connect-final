@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 // AJOUT DE 'FaCommentDots' DANS LES IMPORTS
 import { 
   FaChartLine, FaUsers, FaShieldAlt, FaMoneyBillWave, 
-  FaHome, FaSignOutAlt, FaEnvelopeOpenText, FaCommentDots 
+  FaHome, FaSignOutAlt, FaEnvelopeOpenText, FaCommentDots, FaChurch 
 } from 'react-icons/fa';
 
 export default function AdminLayout() {
@@ -32,7 +32,7 @@ export default function AdminLayout() {
             <Link to="/admin/content" style={linkStyle(isActive('/admin/content'))}><FaShieldAlt /> Modération</Link>
             <Link to="/admin/finances" style={linkStyle(isActive('/admin/finances'))}><FaMoneyBillWave /> Finances</Link>
             <Link to="/admin/newsletter" style={linkStyle(isActive('/admin/newsletter'))}><FaEnvelopeOpenText /> Newsletter</Link>
-            {/* C'EST ICI QUE L'ICÔNE EST UTILISÉE */}
+            <Link to="/admin/parishes" style={linkStyle(isActive('/admin/parishes'))}><FaChurch /> Paroisses</Link>
             <Link to="/admin/feedback" style={linkStyle(isActive('/admin/feedback'))}><FaCommentDots /> Avis & Bugs</Link>
         </nav>
 

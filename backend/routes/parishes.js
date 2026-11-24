@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Parish = require('../models/Parish');
 const User = require('../models/User');
+const ParishRequest = require('../models/ParishRequest');
+const upload = require('../middleware/uploadMiddleware');
 const auth = require('../middleware/authMiddleware');
 const adminOnly = require('../middleware/adminMiddleware');
 
@@ -26,6 +28,86 @@ router.get('/', async (req, res) => {
   try {
     const list = await Parish.find({ active: true }).sort({ isPilot: -1, name: 1 });
     res.json(await Promise.all(list.map(withCount)));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+const uniqueSlug = async (name) => {
+  const base = slugify(name) || 'paroisse';
+  let slug = base, i = 2;
+  while (await Parish.findOne({ slug })) slug = `${base}-${i++}`;
+  return slug;
+};
+
+// ===== DEMANDES D'AJOUT (membre connecté) =====
+router.post('/requests', auth, async (req, res) => {
+  try {
+    const { name, quarter, city, contactName, contactPhone, message } = req.body;
+    if (!name || String(name).trim().length < 3) return res.status(400).json({ message: 'Nom de la paroisse requis (3 caractères min).' });
+    const pending = await ParishRequest.countDocuments({ requester: req.auth.userId, status: 'pending' });
+    if (pending >= 3) return res.status(429).json({ message: 'Vous avez déjà 3 demandes en attente.' });
+    const r = await ParishRequest.create({ name: String(name).trim().slice(0, 120), quarter, city, contactName, contactPhone, message: String(message || '').slice(0, 1000), requester: req.auth.userId });
+    res.status(201).json({ message: "Demande envoyée ! L'équipe la validera rapidement.", id: r._id });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== ADMIN =====
+router.get('/admin/all', auth, adminOnly, async (req, res) => {
+  try {
+    const list = await Parish.find().sort({ isPilot: -1, name: 1 }).populate('admins', 'name email');
+    res.json(await Promise.all(list.map(withCount)));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/admin/requests', auth, adminOnly, async (req, res) => {
+  try {
+    res.json(await ParishRequest.find({ status: 'pending' }).sort({ createdAt: -1 }).populate('requester', 'name email phone'));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/requests/:id/approve', auth, adminOnly, async (req, res) => {
+  try {
+    const r = await ParishRequest.findById(req.params.id);
+    if (!r || r.status !== 'pending') return res.status(404).json({ message: 'Demande introuvable ou déjà traitée.' });
+    const parish = await Parish.create({ name: r.name, slug: await uniqueSlug(r.name), city: r.city, quarter: r.quarter, admins: [r.requester] });
+    r.status = 'approved'; r.parish = parish._id; await r.save();
+    res.json({ message: `Paroisse « ${parish.name} » créée.`, parish });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/requests/:id/reject', auth, adminOnly, async (req, res) => {
+  try {
+    await ParishRequest.updateOne({ _id: req.params.id, status: 'pending' }, { $set: { status: 'rejected' } });
+    res.json({ message: 'Demande refusée.' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/admin/:id/toggle', auth, adminOnly, async (req, res) => {
+  try {
+    const p = await Parish.findById(req.params.id);
+    if (!p) return res.status(404).json({ message: 'Paroisse introuvable' });
+    p.active = !p.active; await p.save();
+    res.json({ message: p.active ? 'Paroisse activée.' : 'Paroisse désactivée.', active: p.active });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/:id/admins/:userId', auth, adminOnly, async (req, res) => {
+  try {
+    await Parish.updateOne({ _id: req.params.id }, { $pull: { admins: req.params.userId } });
+    res.json({ message: 'Responsable retiré.' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Logo (super-admin ou responsable)
+router.post('/:id/logo', auth, upload.single('logo'), async (req, res) => {
+  try {
+    const p = await Parish.findById(req.params.id);
+    if (!p) return res.status(404).json({ message: 'Paroisse introuvable' });
+    const me = await User.findById(req.auth.userId);
+    if (!(me && (me.role === 'admin' || p.admins.some(a => String(a) === String(me._id))))) return res.status(403).json({ message: 'Accès refusé' });
+    if (!req.file) return res.status(400).json({ message: 'Fichier requis' });
+    p.logo = req.file.path; await p.save();
+    res.json({ logo: p.logo });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
