@@ -330,3 +330,12 @@ input[type="file"]::file-selector-button { font-family: inherit; font-weight: bo
   .chat-container { height: auto !important; top: 70px !important; bottom: calc(65px + env(safe-area-inset-bottom)) !important; width: 100%; border-radius: 0; }
   .chat-input-area { padding: 10px; }
 }
+
+/* Chat : le bouton « Avis » masque la zone de saisie, on le cache sur les écrans de discussion */
+body:has(.chat-container) .feedback-btn { display: none !important; }
+
+/* Volet d'infos (groupe / profil) : défilement, texte lisible */
+.profile-sidebar .sidebar-content { overflow-y: auto; box-sizing: border-box; height: 100%; width: 100%; padding-top: 50px; -webkit-overflow-scrolling: touch; }
+.profile-sidebar .sidebar-content p { font-size: 0.9rem; line-height: 1.5; text-align: left; white-space: pre-wrap; word-break: break-word; }
+.profile-sidebar .sidebar-content h2 { font-size: 1.2rem; }
+@media (max-width: 768px) { .profile-sidebar.open { width: 85%; max-width: 340px; } .sidebar-content { min-width: 0; } }
