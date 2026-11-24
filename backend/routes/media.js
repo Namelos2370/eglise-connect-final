@@ -3,11 +3,12 @@ const router = express.Router();
 const Media = require('../models/Media');
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const { PUBLIC, statusFor } = require('../middleware/moderation');
 
 // 1. LISTER TOUS LES MÉDIAS (Public)
 router.get('/', async (req, res) => {
   try {
-    const medias = await Media.find()
+    const medias = await Media.find(PUBLIC)
       .sort({ createdAt: -1 })
       .populate('author', 'name photo');
     res.status(200).json(medias);
@@ -31,6 +32,7 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
       category: req.body.category,
       fileUrl: req.file.path,
       fileType: type,
+      status: await statusFor(req.auth.userId),
       author: req.auth.userId
     });
 

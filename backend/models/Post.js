@@ -13,6 +13,7 @@ const postSchema = mongoose.Schema({
   // Paroisse (facultatif)
   parish: { type: mongoose.Schema.Types.ObjectId, ref: 'Parish' },
 
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' }, // modération : le contenu existant reste visible
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   
   comments: [{

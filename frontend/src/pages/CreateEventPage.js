@@ -60,7 +60,7 @@ export default function CreateEventPage() {
       });
 
       if (res.ok) {
-        toast.success('Événement créé avec succès ! 🎉');
+        toast.success('Événement envoyé ! 🎉 Il sera visible après validation par l’administration.', { autoClose: 6000 });
         navigate('/events');
       } else {
         const errData = await res.json();

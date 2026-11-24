@@ -7,6 +7,7 @@ const Notification = require('../models/Notification');
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const cleanContent = require('../middleware/cleanContent');
+const { PUBLIC, statusFor } = require('../middleware/moderation');
 
 // 1. LIRE LE FIL D'ACTUALITÉ PUBLIC (Exclut strictement les groupes)
 router.get('/', async (req, res) => {
@@ -17,6 +18,7 @@ router.get('/', async (req, res) => {
     ] };
     // Filtre facultatif : ?parish=<id> (sans paramètre, comportement inchangé)
     if (req.query.parish && /^[a-f\d]{24}$/i.test(req.query.parish)) query.parish = req.query.parish;
+    Object.assign(query, PUBLIC);
     const posts = await Post.find(query)
     .sort({ createdAt: -1 })
     .populate('author', 'name photo')
@@ -54,6 +56,7 @@ router.get('/user/:userId', async (req, res) => {
   try {
     const posts = await Post.find({ 
         author: req.params.userId,
+        ...PUBLIC,
         $or: [{ group: { $exists: false } }, { group: null }] // On ne montre pas les secrets de groupe sur le profil
     })
     .sort({ createdAt: -1 })
@@ -88,7 +91,9 @@ router.post('/', auth, upload.single('image'), cleanContent, async (req, res) =>
       content: req.body.content || "",
       image: imageUrl,
       author: req.auth.userId,
-      group: req.body.groupId || undefined // C'est ici que le tri se fait à la création
+      group: req.body.groupId || undefined, // C'est ici que le tri se fait à la création
+      // Les messages de groupe (discussion privée) ne sont pas modérés ; les publications publiques le sont
+      status: req.body.groupId ? 'approved' : await statusFor(req.auth.userId)
     });
 
     await newPost.save();
@@ -134,6 +139,7 @@ router.put('/:id', auth, cleanContent, async (req, res) => {
     if (!post) return res.status(404).json({ message: "Introuvable" });
     if (post.author.toString() !== req.auth.userId) return res.status(403).json({ message: "Non autorisé" });
     post.content = req.body.content;
+    if (!post.group) post.status = await statusFor(req.auth.userId); // une modification repasse en validation
     await post.save();
     res.status(200).json(post);
   } catch (error) { res.status(500).json({ error: error.message }); }

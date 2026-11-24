@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Prayer = require('../models/Prayer');
 const auth = require('../middleware/authMiddleware');
+const { PUBLIC, statusFor } = require('../middleware/moderation');
 
 // 1. LISTER LES PRIÈRES (Public ou non, à voir. Ici Public pour lecture)
 router.get('/', async (req, res) => {
   try {
-    const prayers = await Prayer.find()
+    const prayers = await Prayer.find(PUBLIC)
       .sort({ createdAt: -1 })
       .populate('author', 'name photo');
     res.status(200).json(prayers);
@@ -20,6 +21,7 @@ router.post('/', auth, async (req, res) => {
     const newPrayer = new Prayer({
       content,
       isAnonymous,
+      status: await statusFor(req.auth.userId),
       author: req.auth.userId
     });
     await newPrayer.save();

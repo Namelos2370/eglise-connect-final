@@ -11,7 +11,8 @@ const mediaSchema = mongoose.Schema({
   fileUrl: { type: String, required: true }, // Lien vers le fichier Cloudinary
   fileType: { type: String, enum: ['video', 'audio', 'image', 'document'], default: 'video' },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
 }, {
   timestamps: true
 });
