@@ -186,14 +186,14 @@ export default function MembersPage() {
         }
         .fallback-avatar {
             width: 100%; height: 100%; border-radius: 50%; background: #f0f0f0;
-            display: flex; align-items: center; justifyContent: center;
+            display: flex; align-items: center; justify-content: center;
             color: #ccc; font-size: 40px; border: 4px solid white;
         }
         .badge-admin {
             position: absolute; bottom: 0; right: 0;
             background: var(--primary); color: white;
             width: 30px; height: 30px; border-radius: 50%;
-            display: flex; align-items: center; justifyContent: center;
+            display: flex; align-items: center; justify-content: center;
             border: 2px solid white; font-size: 0.8rem;
         }
         .card-body {
@@ -209,7 +209,7 @@ export default function MembersPage() {
         .member-location {
             color: #888;
             font-size: 0.9rem;
-            display: flex; alignItems: center; justifyContent: center; gap: 5px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
         }
         .card-footer {
             width: 100%;
@@ -227,11 +227,14 @@ export default function MembersPage() {
             background: white;
             width: 35px; height: 35px;
             border-radius: 50%;
-            display: flex; align-items: center; justifyContent: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             color: #333;
             transition: all 0.2s;
         }
+        .member-card-pro .card-footer { box-sizing: border-box; padding: 15px 20px; margin-top: auto; }
+        .member-card-pro .icon-action { flex-shrink: 0; }
+        .member-card-pro .fallback-avatar { box-sizing: border-box; }
         .member-card-pro:hover .icon-action {
             background: var(--primary); color: white;
         }
