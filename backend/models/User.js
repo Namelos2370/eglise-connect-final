@@ -10,6 +10,8 @@ const userSchema = mongoose.Schema({
   city: { type: String, default: '' },
   phone: { type: String, default: '' },
   isPublic: { type: Boolean, default: true },
+  // Admins / curés / responsables de paroisse : coordonnées masquées tant qu'ils n'ont pas choisi de les afficher
+  showContact: { type: Boolean, default: false },
   // Paroisse (facultatif : vide = communauté générale)
   parish: { type: mongoose.Schema.Types.ObjectId, ref: 'Parish' },
   
