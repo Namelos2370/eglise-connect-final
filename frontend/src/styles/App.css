@@ -69,7 +69,7 @@ button:hover { background-color: var(--primary-hover); transform: translateY(-1p
   color: white; padding: 12px 35px; border-radius: 50px; border: none;
   font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;
   box-shadow: 0 10px 20px rgba(223, 169, 46, 0.3);
-  transition: all 0.4s ease; cursor: pointer; display: inline-flex; alignItems: center; justify-content: center; gap: 10px;
+  transition: all 0.4s ease; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
 }
 .btn-magic:hover { background-position: right center; transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(223, 169, 46, 0.5); }
 .btn-magic:active { transform: translateY(1px); box-shadow: 0 5px 10px rgba(223, 169, 46, 0.3); }
