@@ -324,3 +324,9 @@ select.creator-select { background-color: #333; color: #fff; border: none; width
 /* Champ « Choisir un fichier » : taille raisonnable, nom de fichier tronqué */
 input[type="file"] { font-size: 0.85rem !important; width: 100%; max-width: 100%; box-sizing: border-box; margin: 8px 0 20px; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; }
 input[type="file"]::file-selector-button { font-family: inherit; font-weight: bold; font-size: 0.85rem; padding: 8px 14px; border: none; border-radius: 20px; background: #f0e6d2; color: #5a4300; margin-right: 10px; cursor: pointer; }
+
+/* Chat plein écran sur mobile : ne dépasse pas sous la barre du navigateur ni sous la barre du bas */
+@media (max-width: 768px) {
+  .chat-container { height: auto !important; top: 70px !important; bottom: calc(65px + env(safe-area-inset-bottom)) !important; width: 100%; border-radius: 0; }
+  .chat-input-area { padding: 10px; }
+}

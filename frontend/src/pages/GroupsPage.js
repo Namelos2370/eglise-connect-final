@@ -83,7 +83,7 @@ export default function GroupsPage() {
                         </div>
                         <div style={{ padding:'25px 20px 20px 20px', flex:1, display:'flex', flexDirection:'column' }}>
                             <h3 style={{ margin:'0 0 5px 0', fontSize:'1.3em', color:'#333' }}>{group.name}</h3>
-                            <p style={{ fontSize:'0.95em', color:'#666', flex:1, lineHeight:1.5 }}>{group.description}</p>
+                            <p style={{ fontSize:'0.95em', color:'#666', flex:1, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{group.description}</p>
                             
                             {/* CORRECTION ICI : Sécurisation de .length */}
                             <div style={{ marginTop:'20px', borderTop:'1px solid #f5f5f5', paddingTop:'15px', display:'flex', justifyContent:'space-between', alignItems:'center', color:'var(--primary)', fontWeight:'bold', fontSize:'0.9em' }}>
