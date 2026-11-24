@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext, useState, useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
   FaNewspaper, FaCalendarAlt, FaUsers, FaComments, FaHandHoldingHeart, 
@@ -155,6 +155,24 @@ const NavigationBar = () => {
 const MainLayout = () => {
   const location = useLocation();
   const { user } = useContext(AuthContext);
+
+  // Invitation par QR/lien : une fois inscrit(e)/connecté(e), on rejoint la paroisse visée
+  useEffect(() => {
+    if (!user) return;
+    let slug = null;
+    try { slug = localStorage.getItem('ec_pending_parish'); } catch (e) {}
+    if (!slug) return;
+    try { localStorage.removeItem('ec_pending_parish'); } catch (e) {}
+    (async () => {
+      try {
+        const pr = await fetch(`${API_URL}/parishes/${slug}`);
+        if (!pr.ok) return;
+        const p = await pr.json();
+        const jr = await fetch(`${API_URL}/parishes/${p._id}/join`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        if (jr.ok) { toast.success(`Bienvenue à ${p.name} !`); window.location.href = `/paroisses/${slug}`; }
+      } catch (e) {}
+    })();
+  }, [user]);
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (

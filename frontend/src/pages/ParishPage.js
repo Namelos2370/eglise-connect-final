@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import ParishShare from '../components/ParishShare';
 import { toast } from 'react-toastify';
 import { FaChurch, FaMapMarkerAlt, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import Seo from '../components/Seo';
@@ -12,6 +13,8 @@ export default function ParishPage() {
   const { slug } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const invited = searchParams.get('rejoindre') === '1';
   const [parish, setParish] = useState(null);
   const [missing, setMissing] = useState(false);
   const [posts, setPosts] = useState([]);
@@ -35,7 +38,7 @@ export default function ParishPage() {
   const canManage = user && parish && (user.role === 'admin' || (parish.admins || []).some(a => a._id === user._id));
 
   const join = async () => {
-    if (!user) { toast.info('Connectez-vous pour rejoindre cette paroisse.'); return navigate('/login'); }
+    if (!user) { try { localStorage.setItem('ec_pending_parish', parish.slug); } catch (e) {} toast.info('Créez un compte ou connectez-vous pour rejoindre cette paroisse.'); return navigate('/signup'); }
     const r = await fetch(`${API_URL}/parishes/${parish._id}/join`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) { toast.success('Bienvenue dans votre paroisse !'); setTimeout(() => window.location.reload(), 600); } else toast.error('Impossible pour le moment.');
   };
@@ -58,6 +61,12 @@ export default function ParishPage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 20 }}>
       <Seo title={parish.name} description={parish.description || `Paroisse ${parish.name} sur Église Connect`} path={`/paroisses/${parish.slug}`} />
+      {invited && !isMine && (
+        <div className="card" style={{ padding: 15, marginBottom: 15, textAlign: 'center', background: '#fff8e1', border: '1px solid var(--primary)' }}>
+          <strong>Vous êtes invité(e) à rejoindre cette paroisse.</strong>
+          <div style={{ marginTop: 8 }}><button onClick={join}>Rejoindre maintenant</button></div>
+        </div>
+      )}
       <div className="card" style={{ padding: 25, textAlign: 'center' }}>
         {parish.logo ? <img src={parish.logo} alt={`Logo ${parish.name}`} width="90" height="90" style={{ borderRadius: 16, objectFit: 'cover' }} />
           : <div style={{ fontSize: '3rem', color: 'var(--primary)' }}><FaChurch /></div>}
@@ -69,6 +78,8 @@ export default function ParishPage() {
         </div>
         {canManage && <p style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>Vous gérez cette paroisse.</p>}
       </div>
+
+      <ParishShare parish={parish} />
 
       <h2 style={{ marginTop: 30 }}><FaCalendarAlt style={{ color: 'var(--primary)' }} /> Événements</h2>
       {events.length === 0 ? <p style={{ color: 'var(--text-light)' }}>Aucun événement annoncé.</p> : events.map(ev => (
