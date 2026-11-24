@@ -42,6 +42,9 @@
   "i18next-http-backend": "^3.0.2",
  
    
+  "qrcode": "^1.5.4",
+ 
+   
   "react": "^19.2.0",
  
    

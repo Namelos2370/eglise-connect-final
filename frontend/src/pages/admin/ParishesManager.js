@@ -90,6 +90,7 @@ export default function ParishesManager() {
             <label className="btn-outline" style={{ cursor: 'pointer', padding: '8px 12px', borderRadius: 5, fontSize: '0.8rem', fontWeight: 'bold' }}>
               <FaCamera /> Logo<input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => uploadLogo(p._id, e.target.files[0])} />
             </label>
+            <a href={`/paroisses/${p.slug}`} target="_blank" rel="noreferrer" className="btn-outline" style={{ padding: '8px 12px', borderRadius: 5, fontSize: '0.8rem', fontWeight: 'bold', textDecoration: 'none' }}>Lien &amp; QR</a>
             <button className="btn-outline" onClick={() => call(`/parishes/admin/${p._id}/toggle`)}>{p.active ? 'Désactiver' : 'Activer'}</button>
           </div>
           <div style={{ marginTop: 10, fontSize: '0.9rem' }}>
