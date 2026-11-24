@@ -50,6 +50,7 @@ import ContentManager from './pages/admin/ContentManager';
 import FinanceManager from './pages/admin/FinanceManager';
 import NewsletterManager from './pages/admin/NewsletterManager';
 import FeedbackManager from './pages/admin/FeedbackManager';
+import ParishesManager from './pages/admin/ParishesManager';
 
 // --- COMPOSANTS ---
 import Footer from './components/Footer';
@@ -201,6 +202,7 @@ const MainLayout = () => {
                 <Route path="finances" element={<FinanceManager />} />
                 <Route path="newsletter" element={<NewsletterManager />} />
                 <Route path="feedback" element={<FeedbackManager />} />
+                <Route path="parishes" element={<ParishesManager />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
