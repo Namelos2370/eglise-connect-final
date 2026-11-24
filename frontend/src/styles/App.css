@@ -139,7 +139,7 @@ button:hover { background-color: var(--primary-hover); transform: translateY(-1p
   .container { padding-bottom: 90px !important; }
   .chat-container { height: calc(100vh - 130px) !important; top: 60px; bottom: 70px; }
   .nav-dropdown { display: none; } 
-  .feedback-btn { bottom: 85px !important; right: 20px; }
+  .feedback-btn { bottom: 85px !important; left: 15px !important; right: auto !important; padding: 10px 16px; font-size: 0.9rem; }
 }
 
 
