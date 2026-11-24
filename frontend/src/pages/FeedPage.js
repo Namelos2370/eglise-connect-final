@@ -1,3 +1,4 @@
+import FeedMediaCard from '../components/FeedMediaCard';
 import ScopeToggle from '../components/ScopeToggle';
 import Seo from '../components/Seo';
 import { useState, useEffect, useContext } from 'react';
@@ -15,6 +16,7 @@ export default function FeedPage() {
   
   const [posts, setPosts] = useState([]);
   const [scope, setScope] = useState('all');
+  const [medias, setMedias] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   
@@ -39,6 +41,11 @@ export default function FeedPage() {
           const data = await res.json();
           if (Array.isArray(data)) setPosts(data);
       }
+      // Médias (vidéos, audios, photos) affichés en alternance avec les publications
+      if (scope === 'all') {
+        const mr = await fetch(`${API_URL}/media`);
+        if (mr.ok) { const md = await mr.json(); if (Array.isArray(md)) setMedias(md); }
+      } else setMedias([]);
     } catch (err) { console.error(err); }
     setLoading(false);
   };
@@ -64,6 +71,17 @@ export default function FeedPage() {
     const search = searchTerm.toLowerCase();
     return content.includes(search) || authorName.includes(search);
   });
+
+  const filteredMedias = medias.filter(m => {
+    const q = searchTerm.toLowerCase();
+    return !q || (m.title || '').toLowerCase().includes(q) || (m.description || '').toLowerCase().includes(q) || (m.author?.name || '').toLowerCase().includes(q);
+  });
+  // Alternance : publication, média, publication, média… (le reste à la suite)
+  const feedItems = [];
+  for (let i = 0; i < Math.max(filteredPosts.length, filteredMedias.length); i++) {
+    if (filteredPosts[i]) feedItems.push(filteredPosts[i]);
+    if (filteredMedias[i]) feedItems.push({ ...filteredMedias[i], _kind: 'media' });
+  }
 
   const checkAuth = () => { if (!user) { toast.info("Connectez-vous !"); navigate('/login'); return false; } return true; };
 
@@ -154,7 +172,9 @@ export default function FeedPage() {
       )}
 
       {/* LISTE DES POSTS (Code identique, juste pour l'affichage) */}
-      {filteredPosts.map(post => {
+      {feedItems.map(item => {
+        if (item._kind === 'media') return <FeedMediaCard key={`m-${item._id}`} media={item} />;
+        const post = item;
         const isMyPost = user && post.author?._id === user._id;
         const isEditing = editingPostId === post._id;
         const isLiked = user && post.likes.includes(user._id);
