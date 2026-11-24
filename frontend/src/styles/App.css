@@ -305,3 +305,9 @@ img { max-width: 100%; }
   .cookie-banner { bottom: 65px; }
   .hero-cta { width: 100%; justify-content: center; box-sizing: border-box; }
 }
+
+/* Boutons placés dans un lien : pas de soulignement ni de couleur de lien */
+a:has(> button) { text-decoration: none; }
+a > button, a > button * { text-decoration: none; }
+a > button:not(.btn-outline):not(.hero-cta) { color: white; }
+a > button:not(.btn-outline):not(.hero-cta) * { color: inherit; }
