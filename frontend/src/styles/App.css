@@ -311,3 +311,12 @@ a:has(> button) { text-decoration: none; }
 a > button, a > button * { text-decoration: none; }
 a > button:not(.btn-outline):not(.hero-cta) { color: white; }
 a > button:not(.btn-outline):not(.hero-cta) * { color: inherit; }
+
+/* Formulaire de création (fond sombre) : le style global des champs ne doit pas l'écraser */
+input.creator-input, textarea.creator-input, input.creator-input:focus, textarea.creator-input:focus {
+  background-color: transparent; color: #fff; border: none; border-bottom: 1px solid #444; border-radius: 0; padding: 10px 0; margin: 0 0 15px 0;
+  -webkit-text-fill-color: #fff; caret-color: var(--gold);
+}
+input.creator-input:focus, textarea.creator-input:focus { border-bottom-color: var(--gold); }
+.creator-input::placeholder { color: #9a9a9a; -webkit-text-fill-color: #9a9a9a; }
+select.creator-select { background-color: #333; color: #fff; border: none; width: auto; margin: 0; }
