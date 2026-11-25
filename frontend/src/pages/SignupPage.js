@@ -20,7 +20,9 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (name.trim().length < 2) return toast.error('Veuillez saisir votre nom complet.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error('Adresse email invalide.');
+    const id = email.trim();
+    if (id.includes('@')) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id)) return toast.error('Adresse email invalide.'); }
+    else if (id.replace(/\D/g, '').length < 8) return toast.error('Saisissez un email ou un numéro de téléphone valide (ex : 690 12 34 56).');
     if (password.length < 8) return toast.error('Le mot de passe doit contenir au moins 8 caractères.');
     if (!accepted) return toast.error("Veuillez accepter les CGU et la politique de confidentialité.");
     if (looksLikeBot()) return toast.error('Veuillez réessayer dans un instant.');
@@ -46,7 +48,7 @@ export default function SignupPage() {
 
           <div style={{ position: 'relative', marginBottom: '20px' }}>
             <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input type="email" aria-label="Email" autoComplete="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
+            <input type="text" inputMode="email" aria-label="Email ou téléphone" autoComplete="username" placeholder="Email ou numéro de téléphone" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '30px' }}>

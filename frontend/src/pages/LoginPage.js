@@ -33,7 +33,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ position: 'relative', marginBottom: '20px' }}>
             <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
+            <input type="text" inputMode="email" autoComplete="username" aria-label="Email ou téléphone" placeholder="Email ou numéro de téléphone" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '10px' }}>

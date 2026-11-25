@@ -7,6 +7,7 @@ const auth = require('../middleware/authMiddleware');
 const adminOnly = require('../middleware/adminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const crypto = require('crypto');
+const { normalizePhone, phoneEmail } = require('../middleware/phone');
 const nodemailer = require('nodemailer');
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://eglise-connect.com";
@@ -22,19 +23,32 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 1. INSCRIPTION
+// 1. INSCRIPTION (par email OU par numéro de téléphone)
 router.post('/signup', async (req, res) => {
   try {
     const { password, name } = req.body;
-    const email = String(req.body.email || '').trim().toLowerCase();
-    if (!EMAIL_RE.test(email)) return res.status(400).json({ message: "Email invalide." });
+    let email = String(req.body.email || '').trim().toLowerCase();
+    const rawPhone = String(req.body.phone || '').trim();
+    if (!email && !rawPhone) return res.status(400).json({ message: "Indiquez un email ou un numéro de téléphone." });
     if (typeof password !== 'string' || password.length < 8) return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères." });
     if (!name || !String(name).trim()) return res.status(400).json({ message: "Le nom est requis." });
+
+    let phoneKey;
+    if (rawPhone) {
+      phoneKey = normalizePhone(rawPhone);
+      if (!phoneKey) return res.status(400).json({ message: "Numéro de téléphone invalide." });
+      if (await User.findOne({ phoneKey })) return res.status(400).json({ message: "Ce numéro de téléphone est déjà utilisé." });
+    }
+    if (email) {
+      if (!EMAIL_RE.test(email)) return res.status(400).json({ message: "Email invalide." });
+    } else {
+      email = phoneEmail(phoneKey); // email technique, jamais affiché
+    }
     const existingUser = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
-    if (existingUser) return res.status(400).json({ message: "Cet email est déjà utilisé." });
+    if (existingUser) return res.status(400).json({ message: email.endsWith('.local') ? "Ce numéro de téléphone est déjà utilisé." : "Cet email est déjà utilisé." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword, name });
+    const newUser = new User({ email, password: hashedPassword, name, phone: rawPhone, phoneKey });
     await newUser.save();
 
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
@@ -42,12 +56,18 @@ router.post('/signup', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 2. CONNEXION
+// 2. CONNEXION (email OU numéro de téléphone)
 router.post('/login', async (req, res) => {
   try {
     const password = req.body.password;
-    const email = String(req.body.email || '').trim();
-    const user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
+    const identifier = String(req.body.identifier || req.body.email || '').trim();
+    let user;
+    if (identifier.includes('@')) {
+      user = await User.findOne({ email: identifier }).collation({ locale: 'en', strength: 2 });
+    } else {
+      const key = normalizePhone(identifier);
+      if (key) user = await User.findOne({ $or: [{ phoneKey: key }, { email: phoneEmail(key) }] });
+    }
     if (!user) return res.status(401).json({ message: "Identifiants incorrects." });
 
     const validPassword = await bcrypt.compare(password, user.password);
@@ -103,6 +123,16 @@ router.put('/update', auth, async (req, res) => {
   try {
     const { name, bio, city, phone, isPublic, showContact, preferences } = req.body;
     const updateData = { name, bio, city, phone, isPublic, showContact, preferences };
+    if (typeof phone === 'string') {
+      if (phone.trim() === '') { updateData.phoneKey = null; }
+      else {
+        const key = normalizePhone(phone);
+        if (!key) return res.status(400).json({ message: "Numéro de téléphone invalide." });
+        const other = await User.findOne({ phoneKey: key, _id: { $ne: req.auth.userId } });
+        if (other) return res.status(400).json({ message: "Ce numéro de téléphone est déjà utilisé." });
+        updateData.phoneKey = key;
+      }
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.auth.userId,
@@ -117,6 +147,7 @@ router.put('/update', auth, async (req, res) => {
 // 7. MOT DE PASSE OUBLIÉ (Envoi Email)
 router.post('/forgot-password', async (req, res) => {
   try {
+    if (!String(req.body.email || '').includes('@')) return res.status(200).json({ message: "Pour un compte créé avec un numéro de téléphone, contactez l'administration pour réinitialiser votre mot de passe." });
     const user = await User.findOne({ email: String(req.body.email || '').trim() }).collation({ locale: 'en', strength: 2 });
     // Réponse identique que l'email existe ou non (évite l'énumération des comptes)
     if (!user) return res.status(200).json({ message: "Si cet email existe, un lien vient d'être envoyé." });

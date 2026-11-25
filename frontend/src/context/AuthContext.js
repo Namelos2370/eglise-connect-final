@@ -39,12 +39,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // FONCTION LOGIN AMÉLIORÉE (Sans rechargement de page)
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     // 1. Récupérer le token
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ identifier, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -65,11 +65,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, identifier, password) => {
+    const id = String(identifier || '').trim();
+    const contact = id.includes('@') ? { email: id } : { phone: id };
     const res = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
+      body: JSON.stringify({ name, ...contact, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);

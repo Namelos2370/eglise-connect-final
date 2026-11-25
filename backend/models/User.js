@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { isPlaceholderEmail } = require('../middleware/phone');
 
 const userSchema = mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -9,6 +10,7 @@ const userSchema = mongoose.Schema({
   bio: { type: String, default: '' },
   city: { type: String, default: '' },
   phone: { type: String, default: '' },
+  phoneKey: { type: String, index: true }, // téléphone normalisé (+237...), sert à la connexion par numéro
   isPublic: { type: Boolean, default: true },
   // Coordonnées (email, téléphone, ville) masquées aux autres membres tant que l'utilisateur n'a pas choisi de les afficher
   showContact: { type: Boolean, default: false },
@@ -26,7 +28,10 @@ const userSchema = mongoose.Schema({
     language: { type: String, default: 'fr' }
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  // Les comptes créés avec un numéro de téléphone ont un email technique : on ne l'expose jamais
+  toJSON: { transform: (doc, ret) => { delete ret.phoneKey; if (isPlaceholderEmail(ret.email)) { ret.email = ''; ret.phoneOnly = true; } return ret; } },
+  toObject: { transform: (doc, ret) => { delete ret.phoneKey; if (isPlaceholderEmail(ret.email)) { ret.email = ''; ret.phoneOnly = true; } return ret; } }
 });
 
 module.exports = mongoose.model('User', userSchema);
