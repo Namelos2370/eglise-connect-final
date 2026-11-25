@@ -20,7 +20,8 @@ router.get('/', auth, async (req, res) => {
       .sort({ createdAt: -1 }) // Plus récentes d'abord
       .limit(20)
       .populate('sender', 'name photo')
-      .populate('postId', 'content'); 
+      .populate('postId', 'content')
+      .populate('mediaId', 'title'); 
       
     res.status(200).json(notifications);
   } catch (error) {

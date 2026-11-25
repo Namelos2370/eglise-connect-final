@@ -3,7 +3,8 @@ import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { FaPrayingHands, FaPlus, FaLock, FaGlobe, FaUser, FaHeart } from 'react-icons/fa';
+import { FaPrayingHands, FaPlus, FaLock, FaGlobe, FaUser, FaHeart, FaShareAlt } from 'react-icons/fa';
+import { shareContent } from '../utils/share';
 import API_URL from '../config';
 
 export default function PrayerWallPage() {
@@ -97,6 +98,7 @@ export default function PrayerWallPage() {
                         <div style={{ fontSize:'0.9em', color: hasPrayed ? '#10b981' : '#666', display:'flex', alignItems:'center', gap:5 }}>
                             <FaHeart /> <strong>{prayer.prayedBy.length}</strong> prières
                         </div>
+                        <button onClick={() => shareContent({ title: 'Requête de prière', text: `🙏 Priez avec nous : « ${String(prayer.content).slice(0, 140)} »`, path: '/prayers' })} aria-label="Partager" style={{ background:'white', color:'#666', border:'1px solid #eee', boxShadow:'none', padding:'8px 14px', borderRadius:'20px' }}><FaShareAlt /></button>
                         <button 
                             onClick={() => handlePrayClick(prayer._id)}
                             style={{ 

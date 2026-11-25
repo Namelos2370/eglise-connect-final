@@ -1,3 +1,4 @@
+import PushToggle from '../components/PushToggle';
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -189,6 +190,7 @@ export default function ProfilePage() {
       {activeTab === 'settings' && (
         <div className="card" style={{ padding:'30px', textAlign:'center' }}>
             <h3>Paramètres</h3>
+            <PushToggle />
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, background:'#f9f9f9', padding:15, borderRadius:10 }}>
                 <span>Notifications</span>
                 <label className="switch"><input type="checkbox" checked={formData.preferences?.notifications} onChange={(e) => updatePreferences({...formData.preferences, notifications: e.target.checked})} /><span className="slider"></span></label>

@@ -27,13 +27,13 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
       <Seo title="Connexion" path="/login" />
-      <div className="card" style={{ padding: '40px' }}>
+      <div className="card" style={{ padding: 'clamp(20px, 6vw, 40px)' }}>
         <h2 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '30px' }}>Connexion</h2>
         
         <form onSubmit={handleSubmit}>
           <div style={{ position: 'relative', marginBottom: '20px' }}>
             <FaEnvelope style={{ position: 'absolute', top: '15px', left: '15px', color: '#aaa' }} />
-            <input type="text" inputMode="email" autoComplete="username" aria-label="Email ou téléphone" placeholder="Email ou numéro de téléphone" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
+            <input type="text" inputMode="email" autoComplete="username" aria-label="Email ou téléphone" placeholder="Email / téléphone" value={email} onChange={e => setEmail(e.target.value)} required style={{ paddingLeft: '45px' }} />
           </div>
           
           <div style={{ position: 'relative', marginBottom: '10px' }}>
