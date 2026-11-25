@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware'); // Version Cloudinary
+const { PUBLIC, statusFor } = require('../middleware/moderation');
 
 // 1. CRÉER UN ÉVÉNEMENT (VERSION CLOUDINARY)
 router.post('/', auth, upload.array('images', 5), async (req, res) => {
@@ -29,6 +30,7 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
       parish,
       title, description, date, location, type,
       images: imageUrls,
+      status: await statusFor(req.auth.userId),
       organizer: req.auth.userId
     });
 
@@ -40,7 +42,7 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
 // 2. LISTER TOUS (Public)
 router.get('/', async (req, res) => {
   try {
-    const q = (req.query.parish && /^[a-f\d]{24}$/i.test(req.query.parish)) ? { parish: req.query.parish } : {};
+    const q = (req.query.parish && /^[a-f\d]{24}$/i.test(req.query.parish)) ? { parish: req.query.parish, ...PUBLIC } : { ...PUBLIC };
     const events = await Event.find(q).sort({ date: 1 }).populate('organizer', 'name photo'); 
     res.status(200).json(events);
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -74,6 +76,7 @@ router.put('/:id', auth, upload.array('images', 5), async (req, res) => {
         event.images = imageUrls;
     }
 
+    event.status = await statusFor(req.auth.userId); // une modification repasse en validation
     await event.save();
     res.status(200).json({ message: "Modifié !", event });
   } catch (error) { res.status(400).json({ error: error.message }); }

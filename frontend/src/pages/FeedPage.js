@@ -99,7 +99,8 @@ export default function FeedPage() {
     try {
       const res = await fetch(`${API_URL}/posts`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
       if (res.ok) { 
-          toast.success('Publié !'); 
+          const created = await res.json().catch(() => ({}));
+          if (created.status === 'pending') toast.info('Merci ! Votre publication sera visible après validation par l’administration.', { autoClose: 6000 }); else toast.success('Publié !'); 
           setNewPost(''); 
           clearFile(); // Nettoyer l'image
           fetchPosts(); 

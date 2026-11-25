@@ -3,6 +3,8 @@ const router = express.Router();
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Event = require('../models/Event');
+const Prayer = require('../models/Prayer');
+const Media = require('../models/Media');
 const Donation = require('../models/Donation');
 const Subscriber = require('../models/Subscriber');
 const auth = require('../middleware/authMiddleware');
@@ -54,6 +56,41 @@ router.delete('/users/:id', async (req, res) => {
     await Post.deleteMany({ author: req.params.id });
     await Event.deleteMany({ organizer: req.params.id });
     res.status(200).json({ message: "Utilisateur supprimé." });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+
+// 2bis. MODÉRATION : contenus en attente de validation
+const MODEL_BY_TYPE = { posts: Post, events: Event, prayers: Prayer, media: Media };
+
+router.get('/moderation', async (req, res) => {
+  try {
+    const q = { status: 'pending' };
+    const [posts, events, prayers, medias] = await Promise.all([
+      Post.find({ ...q, group: null }).sort({ createdAt: 1 }).populate('author', 'name email'),
+      Event.find(q).sort({ createdAt: 1 }).populate('organizer', 'name email'),
+      Prayer.find(q).sort({ createdAt: 1 }).populate('author', 'name email'),
+      Media.find(q).sort({ createdAt: 1 }).populate('author', 'name email')
+    ]);
+    res.status(200).json({ posts, events, prayers, medias, total: posts.length + events.length + prayers.length + medias.length });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+router.get('/moderation/count', async (req, res) => {
+  try {
+    const c = await Promise.all([Post, Event, Prayer, Media].map(M => M.countDocuments({ status: 'pending' })));
+    res.status(200).json({ total: c.reduce((a, b) => a + b, 0) });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+router.post('/moderation/:type/:id/:action', async (req, res) => {
+  try {
+    const Model = MODEL_BY_TYPE[req.params.type];
+    const status = { approve: 'approved', reject: 'rejected' }[req.params.action];
+    if (!Model || !status) return res.status(400).json({ message: 'Requête invalide.' });
+    const item = await Model.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    if (!item) return res.status(404).json({ message: 'Contenu introuvable.' });
+    res.status(200).json({ message: status === 'approved' ? 'Contenu approuvé et publié.' : 'Contenu refusé.' });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 

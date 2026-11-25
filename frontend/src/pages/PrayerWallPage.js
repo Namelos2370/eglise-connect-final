@@ -32,7 +32,7 @@ export default function PrayerWallPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ content, isAnonymous })
       });
-      if (res.ok) { toast.success("Requête déposée 🙏"); setContent(''); setShowForm(false); fetchPrayers(); }
+      if (res.ok) { const c = await res.json().catch(() => ({})); if (c.status === 'pending') toast.info("Requête reçue 🙏 Elle sera visible après validation par l’administration.", { autoClose: 6000 }); else toast.success("Requête déposée 🙏"); setContent(''); setShowForm(false); fetchPrayers(); }
     } catch (err) { toast.error("Erreur"); }
   };
 

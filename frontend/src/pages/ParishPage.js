@@ -52,7 +52,7 @@ export default function ParishPage() {
     if (!text.trim()) return;
     const fd = new FormData(); fd.append('content', text); fd.append('parishId', parish._id);
     const r = await fetch(`${API_URL}/posts`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: fd });
-    if (r.ok) { setText(''); toast.success('Publié !'); load(); } else toast.error('Erreur');
+    if (r.ok) { const c = await r.json().catch(() => ({})); setText(''); if (c.status === 'pending') toast.info('Merci ! Votre publication sera visible après validation par l’administration.', { autoClose: 6000 }); else toast.success('Publié !'); load(); } else toast.error('Erreur');
   };
 
   if (missing) return <NotFoundPage />;

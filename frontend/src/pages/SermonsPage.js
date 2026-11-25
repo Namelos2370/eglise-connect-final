@@ -52,7 +52,8 @@ export default function SermonsPage() {
     try {
       const res = await fetch(`${API_URL}/media`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: data });
       if (res.ok) { 
-          toast.success("Publié avec succès ! 🎉"); 
+          const c = await res.json().catch(() => ({}));
+          if (c.status === 'pending') toast.info("Merci ! Votre média sera visible après validation par l’administration.", { autoClose: 6000 }); else toast.success("Publié avec succès ! 🎉"); 
           closeCreator();
           fetchMedias(); 
       } 
