@@ -13,6 +13,12 @@ const sanitizeUser = (user, viewer) => {
   delete obj.password;
   delete obj.resetPasswordToken;
   delete obj.resetPasswordExpires;
+  // Coordonnées (email, téléphone, ville) masquées par défaut pour tout le monde, sauf choix contraire du membre
+  if (!isSelf && !isAdmin && !obj.showContact) {
+    delete obj.email;
+    delete obj.phone;
+    delete obj.city;
+  }
   if (!isSelf && !isAdmin && obj.isPublic === false) {
     delete obj.email;
     delete obj.phone;

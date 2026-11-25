@@ -63,7 +63,8 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.auth.userId).select('-password -resetPasswordToken -resetPasswordExpires');
     if (!user) return res.status(404).json({ message: "Non trouvé" });
-    res.status(200).json(user);
+    const isManager = !!(await require('../models/Parish').exists({ admins: user._id }));
+    res.status(200).json({ ...user.toObject(), isManager });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
@@ -100,8 +101,8 @@ router.post('/upload-cover', auth, upload.single('cover'), async (req, res) => {
 // 6. METTRE À JOUR LE PROFIL
 router.put('/update', auth, async (req, res) => {
   try {
-    const { name, bio, city, phone, isPublic, preferences } = req.body;
-    const updateData = { name, bio, city, phone, isPublic, preferences };
+    const { name, bio, city, phone, isPublic, showContact, preferences } = req.body;
+    const updateData = { name, bio, city, phone, isPublic, showContact, preferences };
 
     const updatedUser = await User.findByIdAndUpdate(
       req.auth.userId,
