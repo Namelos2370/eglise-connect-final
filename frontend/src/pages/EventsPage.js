@@ -4,7 +4,8 @@ import { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaPlus, FaTrash, FaSearch, FaImage, FaComment, FaPaperPlane, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaPlus, FaTrash, FaSearch, FaImage, FaComment, FaPaperPlane, FaClock, FaShareAlt } from 'react-icons/fa';
+import { shareContent } from '../utils/share';
 import Spinner from '../components/Spinner';
 import ImageModal from '../components/ImageModal';
 import API_URL from '../config';
@@ -114,6 +115,7 @@ export default function EventsPage() {
                         </div>
                         <div style={{ display:'flex', gap:10 }}>
                             <button onClick={() => toggleComments(event._id)} style={{ background:'white', border:'1px solid #eee', color:'#666' }}><FaComment /> {event.comments ? event.comments.length : 0}</button>
+                            <button onClick={() => shareContent({ title: event.title, text: `${event.title} — ${new Date(event.date).toLocaleDateString('fr-FR')}, ${event.location}`, path: '/events' })} aria-label="Partager" style={{ background:'white', border:'1px solid #eee', color:'#666' }}><FaShareAlt /></button>
                             <button onClick={() => handleRSVP(event._id)} style={{ padding: '10px 25px', borderRadius:'25px', boxShadow:'0 4px 10px rgba(223,169,46,0.4)' }}>Je participe</button>
                         </div>
                     </div>

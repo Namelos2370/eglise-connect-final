@@ -69,7 +69,8 @@ router.post('/:id/messages', auth, cleanContent, async (req, res) => {
     if (otherUser) {
         await Notification.create({ recipient: otherUser._id, sender: req.auth.userId, type: 'message', conversationId: req.params.id });
         // Notification push sur le téléphone du destinataire (sans bloquer la réponse)
-        User.findById(req.auth.userId).select('name').then(me => sendPush(otherUser._id, {
+        // (sauf si le destinataire a désactivé les notifications dans ses préférences)
+        if (otherUser.preferences?.notifications !== false) User.findById(req.auth.userId).select('name').then(me => sendPush(otherUser._id, {
             title: me ? me.name : 'Nouveau message',
             body: String(req.body.content || '').slice(0, 120),
             url: `/private-chat/${req.params.id}`,
