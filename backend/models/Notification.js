@@ -9,6 +9,7 @@ const notificationSchema = mongoose.Schema({
     required: true 
   },
   postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+  mediaId: { type: mongoose.Schema.Types.ObjectId, ref: 'Media' },
   conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' },
   read: { type: Boolean, default: false }
 }, {

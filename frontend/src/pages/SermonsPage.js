@@ -1,7 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { FaVideo, FaMusic, FaPlus, FaPlayCircle, FaTimes, FaSpinner, FaCloudUploadAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaMusic, FaPlus, FaPlayCircle, FaSpinner, FaCloudUploadAlt, FaArrowLeft, FaHeart, FaRegHeart, FaRegComment, FaShareAlt, FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import API_URL from '../config';
 
@@ -17,6 +18,39 @@ export default function SermonsPage() {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null); // Pour voir la vidéo/image
   const [uploading, setUploading] = useState(false);
+  const [commentFor, setCommentFor] = useState(null); // id du média dont on lit les commentaires
+  const [commentText, setCommentText] = useState('');
+  const navigate = useNavigate();
+
+  const authH = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const needLogin = () => { if (!user) { toast.info('Connectez-vous pour interagir.'); navigate('/login'); return true; } return false; };
+
+  const toggleLike = async (m) => {
+    if (needLogin()) return;
+    const liked = (m.likes || []).includes(user._id);
+    setMedias(ms => ms.map(x => x._id === m._id ? { ...x, likes: liked ? x.likes.filter(i => i !== user._id) : [...(x.likes || []), user._id] } : x));
+    try {
+      const r = await fetch(`${API_URL}/media/${m._id}/like`, { method: 'POST', headers: authH() });
+      if (r.ok) { const d = await r.json(); setMedias(ms => ms.map(x => x._id === m._id ? { ...x, likes: d.likes } : x)); }
+    } catch (e) { fetchMedias(); }
+  };
+
+  const sendComment = async (e) => {
+    e.preventDefault();
+    if (needLogin() || !commentText.trim()) return;
+    try {
+      const r = await fetch(`${API_URL}/media/${commentFor}/comment`, { method: 'POST', headers: authH(), body: JSON.stringify({ text: commentText }) });
+      if (r.ok) { const d = await r.json(); setMedias(ms => ms.map(x => x._id === commentFor ? { ...x, comments: d.comments } : x)); setCommentText(''); }
+      else toast.error('Erreur');
+    } catch (err) { toast.error('Erreur'); }
+  };
+
+  const shareMedia = async (m) => {
+    const url = `${window.location.origin}/sermons`;
+    const text = `${m.title} — Église Connect`;
+    if (navigator.share) { navigator.share({ title: m.title, text, url }).catch(() => {}); }
+    else { try { await navigator.clipboard.writeText(`${text} ${url}`); toast.info('Lien copié !'); } catch (e) { toast.error('Copie impossible'); } }
+  };
 
   useEffect(() => { fetchMedias(); }, []);
 
@@ -160,11 +194,49 @@ export default function SermonsPage() {
         ))}
       </div>
 
+      {commentFor && (() => {
+        const m = medias.find(x => x._id === commentFor);
+        if (!m) return null;
+        return (
+          <div className="comment-sheet-backdrop" onClick={() => setCommentFor(null)}>
+            <div className="comment-sheet" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <strong>Commentaires ({(m.comments || []).length})</strong>
+                <button onClick={() => setCommentFor(null)} aria-label="Fermer" style={{ width: 'auto', background: 'none', color: '#666', padding: 4 }}><FaTimes /></button>
+              </div>
+              <div className="comment-list">
+                {(m.comments || []).length === 0 && <p style={{ color: '#999', textAlign: 'center' }}>Soyez le premier à commenter.</p>}
+                {(m.comments || []).map(c => (
+                  <div key={c._id} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                    <img src={c.author?.photo || '/avatar.svg'} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                    <div><strong style={{ fontSize: '0.85em' }}>{c.author?.name || 'Membre'}</strong><div style={{ fontSize: '0.95em' }}>{c.text}</div></div>
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={sendComment} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Écrire un commentaire…" maxLength={500} style={{ margin: 0, flex: 1 }} />
+                <button type="submit" style={{ width: 'auto', padding: '8px 16px' }}>Envoyer</button>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="stories-grid">
         {filteredMedias.map(media => (
             <div key={media._id} className="story-card">
                 <div className="story-header"><img src={media.author?.photo || "/avatar.svg"} className="story-avatar" alt="Photo de l'auteur" /><span className="story-author">{media.author?.name}</span></div>
                 {media.fileType === 'video' ? (<video src={media.fileUrl} controls className="story-media" playsInline />) : media.fileType === 'audio' ? (<div className="story-audio-bg"><FaMusic style={{ fontSize:'4rem', marginBottom:'20px', opacity:0.8 }} /><audio src={media.fileUrl} controls style={{ width:'80%' }} /></div>) : (<img src={media.fileUrl} alt="Média partagé" className="story-media" />)}
+                <div className="story-actions">
+                    <button className="story-action" onClick={() => toggleLike(media)} aria-label="J'aime">
+                        {user && (media.likes || []).includes(user._id) ? <FaHeart style={{ color: '#ff4d6d' }} /> : <FaRegHeart />}
+                        <span>{(media.likes || []).length}</span>
+                    </button>
+                    <button className="story-action" onClick={() => setCommentFor(media._id)} aria-label="Commentaires">
+                        <FaRegComment /><span>{(media.comments || []).length}</span>
+                    </button>
+                    <button className="story-action" onClick={() => shareMedia(media)} aria-label="Partager"><FaShareAlt /></button>
+                </div>
                 <div className="story-overlay"><span className="story-category">{media.category}</span><h3 className="story-title">{media.title}</h3>{media.description && <p className="story-desc">{media.description}</p>}</div>
             </div>
         ))}

@@ -12,6 +12,11 @@ const mediaSchema = mongoose.Schema({
   fileType: { type: String, enum: ['video', 'audio', 'image', 'document'], default: 'video' },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  comments: [{
+    text: { type: String, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+  }],
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
 }, {
   timestamps: true

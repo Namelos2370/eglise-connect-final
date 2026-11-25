@@ -1,5 +1,5 @@
 /* Église Connect – service worker (hors ligne + installation) */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = 'ec-shell-' + VERSION;
 const ASSETS = 'ec-assets-' + VERSION;
 const API = 'ec-api-' + VERSION;
@@ -28,6 +28,30 @@ async function putLimited(cacheName, request, response, max) {
   const keys = await cache.keys();
   if (keys.length > max) await cache.delete(keys[0]);
 }
+
+// Notifications push (messages directs)
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { body: event.data && event.data.text() }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Église Connect', {
+    body: data.body || '',
+    icon: '/logo192.png',
+    badge: '/favicon.png',
+    tag: data.tag,
+    data: { url: data.url || '/inbox' }
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/inbox';
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) {
+      if ('focus' in c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    }
+    return self.clients.openWindow(url);
+  }));
+});
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;

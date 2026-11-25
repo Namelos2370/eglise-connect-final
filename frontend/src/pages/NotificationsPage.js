@@ -35,6 +35,7 @@ export default function NotificationsPage() {
 
   const getLink = (notif) => {
     if (notif.type === 'message') return `/private-chat/${notif.conversationId}`;
+    if (notif.mediaId) return `/sermons`;
     if (notif.type === 'like' || notif.type === 'comment') return `/feed`; // Idéalement vers le post précis
     return '#';
   };
