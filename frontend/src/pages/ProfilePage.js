@@ -96,7 +96,7 @@ export default function ProfilePage() {
             ) : (
                 <h1 style={{ margin:0, fontSize:'1.8rem', color:'var(--secondary)' }}>{user.name}</h1>
             )}
-            <p style={{ color:'#888', margin:'5px 0', fontSize:'0.95rem' }}>{user.email}</p>
+            <p style={{ color:'#888', margin:'5px 0', fontSize:'0.95rem' }}>{user.email || user.phone}</p>
             <div style={{ display:'flex', justifyContent:'center', gap:15, fontSize:'0.9rem', color:'#666', marginTop:'10px' }}>
                 <span style={{ display:'flex', alignItems:'center', gap:5 }}>{formData.isPublic ? <FaGlobe /> : <FaLock />} {formData.isPublic ? 'Public' : 'Privé'}</span>
                 <span style={{ display:'flex', alignItems:'center', gap:5 }}><FaClock /> Membre depuis {joinDate}</span>
