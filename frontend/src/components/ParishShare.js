@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { toast } from 'react-toastify';
-import { FaQrcode, FaLink, FaShareAlt, FaDownload } from 'react-icons/fa';
+import { FaLink, FaShareAlt, FaDownload } from 'react-icons/fa';
 
 const SITE = 'https://eglise-connect.com';
 
@@ -9,6 +9,7 @@ const SITE = 'https://eglise-connect.com';
 export default function ParishShare({ parish }) {
   const link = `${SITE}/paroisses/${parish.slug}?rejoindre=1`;
   const [qr, setQr] = useState('');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     QRCode.toDataURL(link, { width: 600, margin: 2, color: { dark: '#2b2b2b', light: '#ffffff' } }).then(setQr).catch(() => {});
@@ -47,16 +48,22 @@ export default function ParishShare({ parish }) {
     img.src = qr;
   };
 
+  const small = { padding: '7px 11px', fontSize: '0.78rem', whiteSpace: 'nowrap', margin: 0, borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 6 };
   return (
-    <div className="card" style={{ padding: 20, marginTop: 20, textAlign: 'center' }}>
-      <h3 style={{ marginTop: 0 }}><FaQrcode style={{ color: 'var(--primary)' }} /> Inviter à rejoindre la paroisse</h3>
-      {qr && <img src={qr} alt={`QR code pour rejoindre ${parish.name}`} width="220" height="220" />}
-      <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', wordBreak: 'break-all' }}>{link}</p>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button onClick={copy}><FaLink /> Copier le lien</button>
-        <button onClick={share}><FaShareAlt /> Partager</button>
-        <button className="btn-outline" onClick={downloadPoster} disabled={!qr}><FaDownload /> Affiche à imprimer</button>
+    <div className="card" style={{ padding: '12px 16px', marginTop: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <strong style={{ flex: 1, minWidth: 0, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>Inviter</strong>
+        <button style={small} onClick={share} aria-label="Partager"><FaShareAlt /></button>
+        <button style={small} className="btn-outline" onClick={copy} aria-label="Copier le lien"><FaLink /></button>
+        <button style={small} className="btn-outline" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Masquer' : 'QR'}</button>
       </div>
+      {open && (
+        <div style={{ textAlign: 'center', marginTop: 12 }}>
+          {qr && <img src={qr} alt={`QR code pour rejoindre ${parish.name}`} width="180" height="180" />}
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', wordBreak: 'break-all', margin: '6px 0' }}>{link}</p>
+          <button style={small} className="btn-outline" onClick={downloadPoster} disabled={!qr}><FaDownload /> Affiche à imprimer</button>
+        </div>
+      )}
     </div>
   );
 }
