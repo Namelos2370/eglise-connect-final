@@ -50,10 +50,13 @@ router.get('/group/:groupId', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 3. LIRE POSTS D'UN UTILISATEUR (Profil public uniquement)
-// Cette route est publique (pas de 'auth') pour permettre aux visiteurs de voir les profils
-router.get('/user/:userId', async (req, res) => {
+// 3. LIRE SES PROPRES POSTS (privé : personne d'autre ne voit l'historique d'un membre)
+router.get('/user/:userId', auth, async (req, res) => {
   try {
+    if (String(req.params.userId) !== String(req.auth.userId)) {
+      const viewer = await User.findById(req.auth.userId).select('role');
+      if (!viewer || viewer.role !== 'admin') return res.status(403).json({ message: "Accès refusé" });
+    }
     const posts = await Post.find({ 
         author: req.params.userId,
         ...PUBLIC,

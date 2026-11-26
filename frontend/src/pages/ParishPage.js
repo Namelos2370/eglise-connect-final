@@ -20,6 +20,7 @@ export default function ParishPage() {
   const [posts, setPosts] = useState([]);
   const [events, setEvents] = useState([]);
   const [text, setText] = useState('');
+  const [members, setMembers] = useState(null); // visible uniquement par les membres de la paroisse
 
   const load = useCallback(async () => {
     const r = await fetch(`${API_URL}/parishes/${slug}`);
@@ -35,6 +36,12 @@ export default function ParishPage() {
 
   const token = () => localStorage.getItem('token');
   const isMine = user && parish && user.parish === parish._id;
+  const seeMembers = user && parish && (isMine || user.role === 'admin');
+  useEffect(() => {
+    if (!seeMembers) { setMembers(null); return; }
+    fetch(`${API_URL}/parishes/${parish._id}/members`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then(r => r.ok ? r.json() : null).then(setMembers).catch(() => setMembers(null));
+  }, [seeMembers, parish && parish._id]); // eslint-disable-line react-hooks/exhaustive-deps
   const canManage = user && parish && (user.role === 'admin' || (parish.admins || []).some(a => a._id === user._id));
 
   const join = async () => {
@@ -80,6 +87,17 @@ export default function ParishPage() {
       </div>
 
       <ParishShare parish={parish} />
+
+      <h2 style={{ marginTop: 30 }}><FaUsers style={{ color: 'var(--primary)' }} /> Membres ({parish.membersCount})</h2>
+      {seeMembers && members ? (
+        <div className="card" style={{ padding: 10 }}>
+          {members.map(m => (
+            <Link key={m._id} to={`/user/${m._id}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, textDecoration: 'none', color: '#333', borderBottom: '1px solid #eee' }}>
+              <img src={m.photo || '/avatar.svg'} alt="" width="32" height="32" style={{ borderRadius: '50%', objectFit: 'cover' }} /><span>{m.name}</span>
+            </Link>
+          ))}
+        </div>
+      ) : <p style={{ color: 'var(--text-light)' }}>Rejoignez la paroisse pour voir qui en fait partie.</p>}
 
       <h2 style={{ marginTop: 30 }}><FaCalendarAlt style={{ color: 'var(--primary)' }} /> Événements</h2>
       {events.length === 0 ? <p style={{ color: 'var(--text-light)' }}>Aucun événement annoncé.</p> : events.map(ev => (

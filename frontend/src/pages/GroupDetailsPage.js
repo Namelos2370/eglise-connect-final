@@ -51,7 +51,7 @@ export default function GroupDetailsPage() {
             setGroup(groupData);
             
             // Si membre, on charge les messages
-            const isMember = groupData.members.some(m => m._id === user?._id);
+            const isMember = !!groupData.isMember;
             if (isMember) {
                 const resPosts = await fetch(`${API_URL}/posts/group/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (resPosts.ok) {
@@ -106,7 +106,7 @@ export default function GroupDetailsPage() {
 
   if (!group) return <p style={{textAlign:'center', marginTop:50}}>Chargement...</p>;
 
-  const isMember = group.members.some(m => m._id === user._id);
+  const isMember = !!group.isMember;
 
   // SI PAS MEMBRE : ÉCRAN D'ACCUEIL DU GROUPE
   if (!isMember) {
@@ -116,7 +116,8 @@ export default function GroupDetailsPage() {
                 {group.photo ? <img src={group.photo} style={{width:100, height:100, borderRadius:'50%', objectFit:'cover'}} alt="Photo du groupe"/> : <FaUsers size={80} color="#ccc"/>}
                 <h1>{group.name}</h1>
                 <p style={{color:'#666'}}>{group.description}</p>
-                <p><strong>{group.members.length}</strong> membres participent.</p>
+                <p><strong>{group.membersCount ?? group.members.length}</strong> membres participent.</p>
+                <p style={{color:'#888', fontSize:'0.9em'}}>Rejoignez le groupe pour voir qui en fait partie.</p>
                 <button onClick={handleJoin} className="btn-magic" style={{marginTop:20}}>Rejoindre le Groupe</button>
             </div>
         </div>
@@ -136,7 +137,7 @@ export default function GroupDetailsPage() {
                 {group.photo ? <img src={group.photo} style={{width:40, height:40, borderRadius:'50%', objectFit:'cover'}} alt="Photo du groupe"/> : <div style={{width:40, height:40, borderRadius:'50%', background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', color:'white'}}><FaUsers/></div>}
                 <div>
                     <h3 style={{ margin:0, fontSize:'1rem', color:'#333' }}>{group.name}</h3>
-                    <div style={{ fontSize:'0.75em', color:'var(--primary)' }}>{group.members.length} membres • Appuyer pour infos</div>
+                    <div style={{ fontSize:'0.75em', color:'var(--primary)' }}>{group.membersCount ?? group.members.length} membres • Appuyer pour voir qui</div>
                 </div>
             </div>
         </div>
@@ -150,7 +151,7 @@ export default function GroupDetailsPage() {
             <h2>Infos du Groupe</h2>
             <p>{group.description}</p>
             <hr/>
-            <h3>Membres ({group.members.length})</h3>
+            <h3>Membres ({group.membersCount ?? group.members.length})</h3>
             <div style={{ textAlign:'left', maxHeight:'300px', overflowY:'auto' }}>
                 {group.members.map(m => (
                     <Link key={m._id} to={`/user/${m._id}`} style={{display:'flex', alignItems:'center', gap:10, padding:10, textDecoration:'none', color:'#333', borderBottom:'1px solid #eee'}}>
