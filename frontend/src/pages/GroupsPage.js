@@ -87,7 +87,7 @@ export default function GroupsPage() {
                             
                             {/* CORRECTION ICI : Sécurisation de .length */}
                             <div style={{ marginTop:'20px', borderTop:'1px solid #f5f5f5', paddingTop:'15px', display:'flex', justifyContent:'space-between', alignItems:'center', color:'var(--primary)', fontWeight:'bold', fontSize:'0.9em' }}>
-                                <span>{(group.members || []).length} membres</span>
+                                <span>{group.membersCount ?? (group.members || []).length} membres</span>
                                 <span style={{ background:'#fdfbf7', padding:'5px 10px', borderRadius:'15px' }}>Rejoindre <FaArrowRight style={{marginLeft:5}}/></span>
                             </div>
                         </div>

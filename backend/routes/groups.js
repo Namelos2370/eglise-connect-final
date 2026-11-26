@@ -10,8 +10,18 @@ const isIn = (list, id) => (list || []).some(m => String(m._id || m) === String(
 // 1. LISTER TOUS LES GROUPES
 router.get('/', auth, async (req, res) => {
   try {
+    const viewer = await User.findById(req.auth.userId).select('role');
+    const isAdmin = viewer && viewer.role === 'admin';
     const groups = await Group.find().populate('leader', 'name photo').sort({ name: 1 });
-    res.status(200).json(groups);
+    // Seuls les membres (et l'admin) savent QUI est dans le groupe ; les autres voient le nombre.
+    res.status(200).json(groups.map(g => {
+      const o = g.toObject();
+      const member = isIn(o.members, req.auth.userId) || (g.leader && String(g.leader._id || g.leader) === String(req.auth.userId));
+      o.membersCount = (o.members || []).length;
+      o.isMember = member;
+      if (!member && !isAdmin) { o.members = []; o.pendingMembers = []; }
+      return o;
+    }));
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
@@ -57,7 +67,14 @@ router.get('/:id', auth, async (req, res) => {
       .populate('leader', 'name photo')
       .populate('members', 'name photo bio');
     if (!group) return res.status(404).json({ message: 'Groupe introuvable' });
-    res.status(200).json(group);
+    const viewer = await User.findById(req.auth.userId).select('role');
+    const isAdmin = viewer && viewer.role === 'admin';
+    const o = group.toObject();
+    const member = isIn(o.members, req.auth.userId) || (group.leader && String(group.leader._id || group.leader) === String(req.auth.userId));
+    o.membersCount = (o.members || []).length;
+    o.isMember = member;
+    if (!member && !isAdmin) { o.members = []; o.pendingMembers = []; }
+    res.status(200).json(o);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 

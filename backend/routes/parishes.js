@@ -120,6 +120,18 @@ router.get('/:slug', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// 2b. MEMBRES de la paroisse : visibles uniquement par les membres de cette paroisse (et l'admin)
+router.get('/:id/members', auth, async (req, res) => {
+  try {
+    if (!/^[a-f\d]{24}$/i.test(req.params.id)) return res.status(404).json({ message: 'Paroisse introuvable' });
+    const me = await User.findById(req.auth.userId).select('role parish');
+    const allowed = me && (me.role === 'admin' || (me.parish && String(me.parish) === String(req.params.id)));
+    if (!allowed) return res.status(403).json({ message: 'Rejoignez la paroisse pour voir ses membres.' });
+    const members = await User.find({ parish: req.params.id }).select('name photo').sort({ name: 1 });
+    res.json(members);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // 3. CRÉER (super-admin)
 router.post('/', auth, adminOnly, async (req, res) => {
   try {

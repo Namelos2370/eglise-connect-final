@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaArrowLeft, FaComments, FaMapMarkerAlt, FaPhone, FaLock, FaPaperPlane, FaTimes, FaHeart, FaComment } from 'react-icons/fa';
+import { FaArrowLeft, FaComments, FaMapMarkerAlt, FaPhone, FaLock, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import API_URL from '../config';
 
 export default function PublicProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
-  const [userPosts, setUserPosts] = useState([]); // Posts de l'autre utilisateur
   
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -24,25 +23,12 @@ export default function PublicProfilePage() {
         if (res.ok) {
             const data = await res.json();
             setProfile(data);
-            // Si public, on charge aussi ses posts
-            if (data.isPublic !== false) {
-                fetchUserPosts(token);
-            }
         }
         else toast.error("Profil introuvable");
       } catch (err) { toast.error("Erreur chargement"); }
     };
     fetchProfile();
   }, [userId]);
-
-  const fetchUserPosts = async (token) => {
-    try {
-        const res = await fetch(`${API_URL}/posts/user/${userId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) setUserPosts(await res.json());
-    } catch (err) { console.error(err); }
-  };
 
   const handleStartChat = async () => {
     const token = localStorage.getItem('token');
@@ -128,23 +114,7 @@ export default function PublicProfilePage() {
         )}
       </div>
 
-      {/* LISTE DES POSTS DE L'UTILISATEUR (Si Public) */}
-      {!isPrivate && userPosts.length > 0 && (
-        <div style={{ marginTop: '40px' }}>
-            <h3 style={{ borderBottom:'2px solid var(--primary)', paddingBottom:'5px', display:'inline-block' }}>Publications de {profile.name}</h3>
-            {userPosts.map(post => (
-                <div key={post._id} className="card" style={{ padding:'20px', marginTop:'15px' }}>
-                    <small style={{ color:'#888' }}>{new Date(post.createdAt).toLocaleDateString()}</small>
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{post.content}</p>
-                    {post.image && <img src={post.image} alt="Image de la publication" style={{ width: '100%', borderRadius: '10px' }} />}
-                    <div style={{ marginTop:'10px', display:'flex', gap:'15px', color:'#666' }}>
-                        <span><FaHeart /> {post.likes.length}</span>
-                        <span><FaComment /> {post.comments.length}</span>
-                    </div>
-                </div>
-            ))}
-        </div>
-      )}
+      {/* L'historique des publications d'un membre est privé : jamais affiché aux autres. */}
 
     </div>
   );

@@ -51,6 +51,10 @@ router.get('/', async (req, res) => {
 // 3. LISTER PAR USER
 router.get('/user/:userId', auth, async (req, res) => {
   try {
+    if (String(req.params.userId) !== String(req.auth.userId)) {
+      const viewer = await User.findById(req.auth.userId).select('role');
+      if (!viewer || viewer.role !== 'admin') return res.status(403).json({ message: "Accès refusé" });
+    }
     const events = await Event.find({ organizer: req.params.userId }).sort({ date: -1 });
     res.status(200).json(events);
   } catch (error) { res.status(500).json({ error: error.message }); }
