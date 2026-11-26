@@ -210,6 +210,7 @@ const MainLayout = () => {
             <Route path="/private-chat/:conversationId" element={<ProtectedRoute><PrivateChatPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="/create-event" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
+            <Route path="/edit-event/:id" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
             <Route path="/edit-event/:id" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             

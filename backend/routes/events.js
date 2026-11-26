@@ -56,6 +56,18 @@ router.get('/user/:userId', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// 3b. UN SEUL ÉVÉNEMENT (pour l'édition : réservé à l'organisateur)
+router.get('/:id', auth, async (req, res) => {
+  try {
+    if (!/^[a-f\d]{24}$/i.test(req.params.id)) return res.status(404).json({ message: "Introuvable" });
+    const event = await Event.findById(req.params.id).populate('organizer', 'name photo');
+    if (!event) return res.status(404).json({ message: "Introuvable" });
+    const orgId = event.organizer && (event.organizer._id || event.organizer).toString();
+    if (orgId !== req.auth.userId) return res.status(403).json({ message: "Non autorisé" });
+    res.status(200).json(event);
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
 // 4. MODIFIER (VERSION CLOUDINARY)
 router.put('/:id', auth, upload.array('images', 5), async (req, res) => {
   try {
