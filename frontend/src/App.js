@@ -17,7 +17,6 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import EventsPage from './pages/EventsPage';
-import EditEventPage from './pages/EditEventPage';
 import CreateEventPage from './pages/CreateEventPage';
 import ChatPage from './pages/ChatPage';
 import DonationPage from './pages/DonationPage';
@@ -210,7 +209,7 @@ const MainLayout = () => {
             <Route path="/private-chat/:conversationId" element={<ProtectedRoute><PrivateChatPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="/create-event" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
-            <Route path="/edit-event/:id" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
+            <Route path="/edit-event/:id" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             
             <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />

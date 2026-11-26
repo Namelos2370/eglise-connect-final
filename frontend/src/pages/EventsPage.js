@@ -4,7 +4,7 @@ import { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaPlus, FaTrash, FaSearch, FaImage, FaComment, FaPaperPlane, FaClock, FaShareAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaPlus, FaTrash, FaSearch, FaImage, FaComment, FaPaperPlane, FaClock, FaShareAlt, FaEdit } from 'react-icons/fa';
 import { shareContent } from '../utils/share';
 import Spinner from '../components/Spinner';
 import ImageModal from '../components/ImageModal';
@@ -94,6 +94,7 @@ export default function EventsPage() {
                             <span style={{background:'#f3f4f6', color:'#666', padding:'4px 10px', borderRadius:'5px', fontSize:'0.8em', fontWeight:'bold', textTransform:'uppercase'}}>{event.type}</span>
                             <h3 style={{ margin: '10px 0', color: '#333', fontSize:'1.8rem' }}>{event.title}</h3>
                         </div>
+                        {isMyEvent && <button aria-label="Modifier" onClick={() => navigate(`/edit-event/${event._id}`)} style={{ background:'#fef3c7', color:'#b45309', padding:'10px', borderRadius:'50%' }}><FaEdit /></button>}
                         {isMyEvent && <button onClick={() => handleDelete(event._id)} style={{ background:'#fee2e2', color:'#dc2626', padding:'10px', borderRadius:'50%' }}><FaTrash /></button>}
                     </div>
 
