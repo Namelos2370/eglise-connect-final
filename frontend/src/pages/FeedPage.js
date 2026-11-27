@@ -8,9 +8,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaCamera, FaPaperPlane, FaPen, FaTrash, FaHeart, FaRegHeart, FaComment, FaShare, FaSave, FaSearch, FaLock, FaFlag, FaTimes } from 'react-icons/fa';
 import ImageModal from '../components/ImageModal';
 import Spinner from '../components/Spinner';
-import API_URL from '../config'; 
+import API_URL from '../config';
+import useWatermarkShare from '../components/useWatermarkShare'; 
 
 export default function FeedPage() {
+  const { share: shareWm, sheet: shareSheet } = useWatermarkShare();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   
@@ -113,7 +115,10 @@ export default function FeedPage() {
   const handleDelete = async (postId) => { if(!window.confirm("Supprimer ?")) return; const token = localStorage.getItem('token'); await fetch(`${API_URL}/posts/${postId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); fetchPosts(); toast.info("Supprimé"); };
   const handleLike = async (postId) => { if (checkAuth()) { const token = localStorage.getItem('token'); await fetch(`${API_URL}/posts/${postId}/like`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); fetchPosts(); }};
   const handleComment = async (postId) => { if (checkAuth()) { const text = commentText[postId]; if (!text) return; const token = localStorage.getItem('token'); await fetch(`${API_URL}/posts/${postId}/comment`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ text }) }); setCommentText({ ...commentText, [postId]: '' }); fetchPosts(); }};
-  const handleShare = (post) => { if (navigator.share) navigator.share({ title: `Post`, text: post.content, url: window.location.href }).catch(console.error); else { navigator.clipboard.writeText(`${post.author?.name}: "${post.content}"`); toast.info("Copié !"); }};
+  const handleShare = (post) => shareWm({
+    imageUrl: post.image, title: 'Publication', text: `${post.author?.name || ''} : « ${String(post.content || '').slice(0, 200)} » — Église Connect`,
+    fallback: () => { if (navigator.share) navigator.share({ title: 'Post', text: post.content, url: window.location.href }).catch(console.error); else { navigator.clipboard.writeText(`${post.author?.name}: "${post.content}"`); toast.info('Copié !'); } }
+  });
 
   if (loading) return <Spinner />;
 
@@ -209,6 +214,7 @@ export default function FeedPage() {
           </div>
         );
       })}
+      {shareSheet}
     </div>
   );
 }
