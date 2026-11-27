@@ -5,6 +5,7 @@ import { FaMusic, FaPlus, FaPlayCircle, FaSpinner, FaCloudUploadAlt, FaArrowLeft
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import API_URL from '../config';
+import { prepareMediaFile, sendPreparedFile } from '../utils/share';
 
 export default function SermonsPage() {
   const { user } = useContext(AuthContext);
@@ -45,11 +46,30 @@ export default function SermonsPage() {
     } catch (err) { toast.error('Erreur'); }
   };
 
-  const shareMedia = async (m) => {
+  const [ready, setReady] = useState(null); // fichier avec filigrane prêt à envoyer
+  const [preparing, setPreparing] = useState(false);
+
+  const shareLink = async (m) => {
     const url = `${window.location.origin}/sermons`;
     const text = `${m.title} — Église Connect`;
     if (navigator.share) { navigator.share({ title: m.title, text, url }).catch(() => {}); }
     else { try { await navigator.clipboard.writeText(`${text} ${url}`); toast.info('Lien copié !'); } catch (e) { toast.error('Copie impossible'); } }
+  };
+
+  const shareMedia = async (m) => {
+    if (preparing) return;
+    if (m.fileType !== 'image' && m.fileType !== 'video') return shareLink(m);
+    setPreparing(true);
+    const tid = toast.loading(m.fileType === 'video' ? 'Préparation de la vidéo avec le filigrane…' : 'Préparation de l’image…');
+    const prep = await prepareMediaFile(m);
+    toast.dismiss(tid); setPreparing(false);
+    if (!prep) { toast.info('Partage du lien (fichier indisponible)'); return shareLink(m); }
+    const payload = { file: prep.file, title: m.title, text: `${m.title} — Église Connect · eglise-connect.com` };
+    try { const r = await sendPreparedFile(payload); if (r === 'downloaded') toast.success('Fichier téléchargé avec le filigrane'); }
+    catch (e) {
+      if (e && e.name === 'AbortError') return;
+      setReady(payload); // le navigateur demande un nouveau toucher : on propose un bouton
+    }
   };
 
   useEffect(() => { fetchMedias(); }, []);
@@ -241,6 +261,15 @@ export default function SermonsPage() {
             </div>
         ))}
       </div>
+      {ready && (
+        <div onClick={() => setReady(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 4000, display: 'flex', alignItems: 'flex-end' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', width: '100%', borderRadius: '20px 20px 0 0', padding: 22, textAlign: 'center' }}>
+            <strong>Prêt à partager ✅</strong>
+            <p style={{ color: '#666', fontSize: '0.9rem' }}>Votre {ready.file.type.startsWith('video') ? 'vidéo' : 'image'} porte le filigrane Église Connect.</p>
+            <button style={{ width: '100%' }} onClick={() => { const r = ready; setReady(null); sendPreparedFile(r).catch(() => {}); }}><FaShareAlt /> Envoyer</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
